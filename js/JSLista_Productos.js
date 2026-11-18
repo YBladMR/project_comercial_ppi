@@ -22,6 +22,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const pager = document.getElementById("table-pagination");
     const contador = document.getElementById("total-registros");
     const vacio = document.getElementById("estado-vacio");
+    const modalMargenEl = document.getElementById("modalMargenProducto");
+    const formularioMargen = document.getElementById("formularioMargenProducto");
+    const inputMargen = document.getElementById("margenGananciaProducto");
+    const detalleMargen = document.getElementById("detalleMargenProducto");
+    const btnGuardarMargen = document.getElementById("btnGuardarMargen");
+    const modalMargen = typeof coreui !== "undefined" && coreui.Modal
+        ? coreui.Modal.getOrCreateInstance(modalMargenEl)
+        : null;
+    let productoParaMargen = null;
 
     // Estado de la pantalla
     let productos = [];
@@ -142,6 +151,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <span class="lp-acc">
                     <button type="button" class="lp-ib btn-editar" title="Editar" aria-label="Editar">
                         <i class="bi bi-pencil" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="lp-ib btn-margen" title="Asignar margen de ganancia" aria-label="Asignar margen de ganancia">
+                        <i class="bi bi-percent" aria-hidden="true"></i>
                     </button>
                     <button type="button" class="lp-ib btn-estado ${activo ? "baja" : "alta"}"
                             title="${activo ? "Dar de baja" : "Reactivar"}" aria-label="${activo ? "Dar de baja" : "Reactivar"}">
@@ -309,6 +321,67 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         if (e.target.closest(".btn-estado")) {
             cambiarEstado(producto);
+        }
+        if (e.target.closest(".btn-margen")) {
+            abrirModalMargen(producto);
+        }
+    });
+
+    function abrirModalMargen(producto) {
+        productoParaMargen = producto;
+        const margenActual = Number(producto.margen_ganancia ?? producto.margen_categoria ?? 0);
+        inputMargen.value = margenActual > 0 ? margenActual.toFixed(2) : "";
+        inputMargen.classList.remove("is-invalid", "is-valid");
+        detalleMargen.textContent = `${producto.nombre} · Costo promedio: $${Number(producto.costo_promedio ?? 0).toFixed(2)} · Precio actual: $${Number(producto.precio_venta ?? 0).toFixed(2)}`;
+        modalMargen?.show();
+    }
+
+    formularioMargen.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!productoParaMargen) return;
+
+        const textoMargen = inputMargen.value.trim();
+        const valorMargen = Number(textoMargen);
+        const valido = /^\d{1,3}(\.\d{1,2})?$/.test(textoMargen) && valorMargen > 0 && valorMargen <= 100;
+        inputMargen.classList.toggle("is-invalid", !valido);
+        inputMargen.classList.toggle("is-valid", valido);
+        if (!valido) {
+            notificar("warning", "El margen debe ser mayor que 0 y no puede superar el 100%.");
+            inputMargen.focus();
+            return;
+        }
+
+        const textoOriginal = btnGuardarMargen.textContent;
+        btnGuardarMargen.disabled = true;
+        btnGuardarMargen.textContent = "Guardando...";
+
+        try {
+            const datos = new FormData();
+            datos.append("opcion", "asignarMargen");
+            datos.append("id_producto", productoParaMargen.id_producto);
+            datos.append("margen_ganancia", textoMargen);
+
+            const respuesta = await fetch("../dao/DAOProductos.php", {
+                method: "POST",
+                body: datos
+            });
+            if (!respuesta.ok) throw new Error("Error HTTP: " + respuesta.status);
+
+            const resultado = await respuesta.json();
+            if (!resultado.estado) {
+                notificar("warning", resultado.mensaje || "No se pudo asignar el margen.");
+                return;
+            }
+
+            modalMargen?.hide();
+            notificar("success", resultado.mensaje);
+            await cargarDatos();
+        } catch (error) {
+            console.error("Error al asignar el margen:", error);
+            notificar("danger", "No se pudo asignar el margen de ganancia");
+        } finally {
+            btnGuardarMargen.disabled = false;
+            btnGuardarMargen.textContent = textoOriginal;
         }
     });
 
