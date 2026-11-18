@@ -1,15 +1,16 @@
-<?php $titulo_pagina = "Registrar Producto"; ?>
+<?php $titulo_pagina = "Registrar Producto"; 
+include_once(__DIR__ . '/../config.php');?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Producto - Comercial X</title>
-  <link rel="stylesheet" href="/project_comercial_ppi/vendors/simplebar/css/simplebar.css">
-  <link rel="stylesheet" href="/project_comercial_ppi/css/vendors/simplebar.css">
-  <link rel="stylesheet" href="/project_comercial_ppi/css/style.css">
-  <script src="/project_comercial_ppi/js/config.js"></script>
-  <script src="/project_comercial_ppi/js/color-modes.js"></script>
+  <link rel="stylesheet" href="<?php echo BASE_URL; ?>vendors/simplebar/css/simplebar.css">
+  <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/vendors/simplebar.css">
+  <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/style.css">
+  <script src="<?php echo BASE_URL; ?>js/config.js"></script>
+  <script src="<?php echo BASE_URL; ?>js/color-modes.js"></script>
 
   <!-- Iconos y SweetAlert2 para las alertas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous">
@@ -108,9 +109,9 @@
 
   </div> <!-- Cierra el wrapper de la Barra_Lateral.php -->
 
-  <script src="/project_comercial_ppi/vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
-  <script src="/project_comercial_ppi/vendors/simplebar/js/simplebar.min.js"></script>
-  <script src="/project_comercial_ppi/js/Notificaciones.js?v=<?php echo filemtime('../js/Notificaciones.js'); ?>"></script>
-  <script src="../js/JSProductos.js?v=<?php echo filemtime('../js/JSProductos.js'); ?>"></script>
+  <script src="<?php echo BASE_URL; ?>vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
+  <script src="<?php echo BASE_URL; ?>vendors/simplebar/js/simplebar.min.js"></script>
+  <script src="<?php echo BASE_URL; ?>js/Notificaciones.js?v=<?php echo filemtime('../js/Notificaciones.js'); ?>"></script>
+  <script src="<?php echo BASE_URL; ?>js/JSProductos.js?v=<?php echo filemtime('../js/JSProductos.js'); ?>"></script>
 </body>
 </html>
