@@ -1,4 +1,11 @@
+
 <div class="sidebar sidebar-dark sidebar-fixed border-end" id="sidebar">
+  <style>
+  #sidebar {
+    --cui-sidebar-bg: #0e274c;
+    --cui-sidebar-brand-bg: #0e274c;
+  }
+</style>
   <div class="sidebar-header border-bottom">
     <div class="sidebar-brand me-auto">
       <svg role="img" aria-label="CoreUI Logo Full" class="sidebar-brand-full" width="88" height="32" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 312 115">
@@ -17,7 +24,7 @@
 
   <ul class="sidebar-nav" data-coreui="navigation" data-simplebar>
     <li class="nav-item">
-      <a class="nav-link" href="/project_comercial_ppi/index.html">
+      <a class="nav-link" href="<?php echo BASE_URL; ?>index.php">
         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
           <path fill="var(--ci-primary-color, currentcolor)" d="M425.706 142.294A240 240 0 0 0 16 312v88h144v-32H48v-56c0-114.691 93.309-208 208-208s208 93.309 208 208v56H352v32h144v-88a238.43 238.43 0 0 0-70.294-169.706" />
           <path fill="var(--ci-primary-color, currentcolor)" d="M80 264h32v32H80zm160-136h32v32h-32zm-104 40h32v32h-32zm264 96h32v32h-32zm-102.778 71.1 69.2-144.173-28.85-13.848-69.183 144.135a64.141 64.141 0 1 0 28.833 13.886M256 416a32 32 0 1 1 32-32 32.036 32.036 0 0 1-32 32" />
@@ -37,8 +44,8 @@
         Productos
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="/project_comercial_ppi/forms/Productos.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
-        <li class="nav-item"><a class="nav-link" href="/project_comercial_ppi/forms/Lista_Productos.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Productos.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Lista_Productos.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
         <li class="nav-group">
           <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -47,8 +54,8 @@
             Categorías
           </a>
           <ul class="nav-group-items compact">
-            <li class="nav-item"><a class="nav-link" href="/project_comercial_ppi/forms/categoria.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
-            <li class="nav-item"><a class="nav-link" href="/project_comercial_ppi/forms/lista-categoria.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/categoria.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-categoria.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
             </ul>
         </li>
       </ul>
@@ -211,14 +218,14 @@
         <li class="nav-item dropdown">
           <a class="nav-link py-0 pe-0" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
             <div class="avatar avatar-md">
-              <img class="avatar-img" src="/project_comercial_ppi/assets/img/avatars/8.jpg" alt="user@email.com">
+              <img class="avatar-img" src="<?php echo BASE_URL; ?>assets/img/avatars/8.jpg" alt="user@email.com">
             </div>
           </a>
           <div class="dropdown-menu dropdown-menu-end pt-0">
             <div class="dropdown-header bg-body-tertiary text-body-secondary fw-semibold rounded-top mb-2">Account</div>
             <a class="dropdown-item" href="#">Profile</a>
             <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="/project_comercial_ppi/authentication/login.html">Logout</a>
+            <a class="dropdown-item" href="authentication/login.html">Logout</a>
           </div>
         </li>
       </ul>
@@ -226,7 +233,7 @@
     <div class="container-fluid px-4">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb my-0">
-          <li class="breadcrumb-item"><a href="/project_comercial_ppi/index.html">Home</a></li>
+          <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>index.php">Home</a></li>
           <li class="breadcrumb-item active"><span><?php echo $titulo_pagina ?? 'Dashboard'; ?></span></li>
         </ol>
       </nav>
