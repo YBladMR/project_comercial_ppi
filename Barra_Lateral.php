@@ -70,7 +70,7 @@
       </a>
       <ul class="nav-group-items compact">
         <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Existencias</a></li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Ubicaciones</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/ubicacion.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Ubicaciones</a></li>
         <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Ajustes</a></li>
       </ul>
     </li>
@@ -95,8 +95,8 @@
         Proveedores
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/proveedor.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-proveedor.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
       </ul>
     </li>
 
@@ -165,7 +165,7 @@
   </div>
 </div>
 
-<div class="wrapper d-flex flex-column min-vh-100 bg-light">
+<div class="wrapper d-flex flex-column min-vh-100 bg-body">
   <header class="header header-sticky p-0 mb-4">
     <div class="container-fluid border-bottom px-4">
       <button class="header-toggler" type="button" onclick="coreui.Sidebar.getInstance(document.querySelector('#sidebar')).toggle()" style="margin-inline-start: -14px">
