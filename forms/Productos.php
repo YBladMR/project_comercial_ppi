@@ -70,21 +70,17 @@ include_once(__DIR__ . '/../config.php');?>
                 </div>
               </div>
 
-              <!-- Fila 4: Peso, Material, Precio de Venta y Stock Mínimo -->
+              <!-- Fila 4: Peso, Material y Stock Mínimo -->
               <div class="row mb-3">
-                <div class="col-md-3">
+                <div class="col-md-4">
                   <label for="peso_kg" class="form-label">Peso (Kg)</label>
                   <input type="number" step="0.01" min="0" class="form-control" id="peso_kg" name="peso_kg" placeholder="0.00" autocomplete="off">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                   <label for="material" class="form-label">Material</label>
                   <input type="text" class="form-control" id="material" name="material" maxlength="50" placeholder="Ej. Plástico / Aluminio" autocomplete="off">
                 </div>
-                <div class="col-md-3">
-                  <label for="precio_venta" class="form-label">Precio de Venta ($) *</label>
-                  <input type="number" step="0.01" min="0" class="form-control" id="precio_venta" name="precio_venta" value="0.00" required autocomplete="off">
-                </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                   <label for="stock_minimo" class="form-label">Stock Mínimo *</label>
                   <input type="number" min="0" class="form-control" id="stock_minimo" name="stock_minimo" value="0" required autocomplete="off">
                 </div>
