@@ -18,7 +18,6 @@ include_once(__DIR__ . '/../config.php');
     <script src="<?php echo BASE_URL; ?>js/color-modes.js"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -112,8 +111,8 @@ include_once(__DIR__ . '/../config.php');
 
     <script src="<?php echo BASE_URL; ?>vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
     <script src="<?php echo BASE_URL; ?>vendors/simplebar/js/simplebar.min.js"></script>
-    <script src="<?php echo BASE_URL; ?>js/Notificaciones.js"></script>
-    <script src="<?php echo BASE_URL; ?>js/JSProveedor.js"></script>
+    <script src="<?php echo BASE_URL; ?>js/Notificaciones.js?v=<?php echo filemtime(__DIR__ . '/../js/Notificaciones.js'); ?>"></script>
+    <script src="<?php echo BASE_URL; ?>js/JSProveedor.js?v=<?php echo filemtime(__DIR__ . '/../js/JSProveedor.js'); ?>"></script>
 </body>
 
 </html>
