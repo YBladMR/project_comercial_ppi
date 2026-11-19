@@ -5,6 +5,27 @@
     --cui-sidebar-bg: #0e274c;
     --cui-sidebar-brand-bg: #0e274c;
   }
+
+  #sidebar .ubicaciones-submenu {
+    margin-inline-start: .75rem;
+    border-inline-start: 1px solid rgba(255, 255, 255, .16);
+  }
+
+  #sidebar .ubicaciones-submenu .nav-link {
+    padding-block: .4rem;
+    font-size: .8rem;
+    color: rgba(255, 255, 255, .78);
+  }
+
+  #sidebar .ubicaciones-submenu .nav-link:hover,
+  #sidebar .ubicaciones-submenu .nav-link.active {
+    color: #fff;
+  }
+
+  #sidebar .ubicaciones-submenu .nav-icon-bullet {
+    width: .28rem;
+    height: .28rem;
+  }
 </style>
   <div class="sidebar-header border-bottom">
     <div class="sidebar-brand me-auto">
@@ -70,7 +91,16 @@
       </a>
       <ul class="nav-group-items compact">
         <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Existencias</a></li>
-        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/ubicacion.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Ubicaciones</a></li>
+        <li class="nav-group">
+          <a class="nav-link nav-group-toggle" href="#">
+            <span class="nav-icon"><span class="nav-icon-bullet"></span></span>
+            Ubicaciones
+          </a>
+          <ul class="nav-group-items compact ubicaciones-submenu">
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/ubicacion.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Agregar</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-ubicacion.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Ajustes</a></li>
       </ul>
     </li>
