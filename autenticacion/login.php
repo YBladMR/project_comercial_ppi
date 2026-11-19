@@ -1,0 +1,242 @@
+<?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
+
+$mensajeError = (string) ($_SESSION['mensaje_login'] ?? '');
+unset($_SESSION['mensaje_login']);
+$usuarioIngresado = '';
+$mensajeEsExito = isset($_GET['salida']) || isset($_GET['registro']);
+
+if (isset($_GET['salida'])) {
+    $mensajeError = 'La sesión se cerró correctamente.';
+} elseif (isset($_GET['registro'])) {
+    $mensajeError = 'Las cuentas son creadas por un administrador.';
+}
+
+if (esta_autenticado()) {
+    requerir_permiso('panel.ver');
+    header('Location: ' . BASE_URL . 'index.php');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $usuarioIngresado = trim((string) ($_POST['usuario'] ?? ''));
+    $contrasenaIngresada = (string) ($_POST['contrasena'] ?? '');
+
+    if (!validar_token_csrf($_POST['token_csrf'] ?? null)) {
+        $mensajeError = 'La sesión del formulario venció. Recarga la página e intenta de nuevo.';
+    } elseif ($usuarioIngresado === '' || $contrasenaIngresada === '') {
+        $mensajeError = 'Escribe tu usuario y contraseña.';
+    } else {
+        require_once __DIR__ . '/../conexion.php';
+
+        try {
+            $sql = "SELECT u.id_usuario, u.usuario, u.contrasena, u.nombre, u.id_rol,
+                           u.estado, r.nombre AS rol
+                    FROM usuario AS u
+                    INNER JOIN rol AS r ON r.id_rol = u.id_rol
+                    WHERE u.usuario = ?
+                    LIMIT 1";
+            $stmt = $conexion->prepare($sql);
+            if (!$stmt) {
+                throw new RuntimeException('No se pudo preparar la consulta de inicio de sesión.');
+            }
+
+            $stmt->bind_param('s', $usuarioIngresado);
+            $stmt->execute();
+            $resultado = $stmt->get_result();
+            $usuario = $resultado ? $resultado->fetch_assoc() : null;
+            $stmt->close();
+
+            /*
+             * password_hash guarda en la misma cadena el algoritmo, su costo,
+             * una sal aleatoria y el hash. La sal hace que dos usuarios con la
+             * misma contraseña tengan hashes distintos. No hay que crear ni
+             * guardar la sal por separado.
+             *
+             * password_verify lee el algoritmo y la sal desde ese hash y compara
+             * la contraseña ingresada de forma segura. Nunca compares la clave
+             * con el hash usando == ni guardes la contraseña en texto plano.
+             */
+            if ($usuario && $usuario['estado'] === 'activo'
+                && password_verify($contrasenaIngresada, $usuario['contrasena'])) {
+
+                // Si PHP recomienda un algoritmo/costo más reciente, se renueva
+                // el hash después de autenticar; password_hash genera otra sal.
+                if (password_needs_rehash($usuario['contrasena'], PASSWORD_DEFAULT)) {
+                    $hashActualizado = crear_hash_contrasena($contrasenaIngresada);
+                    $stmtHash = $conexion->prepare('UPDATE usuario SET contrasena = ? WHERE id_usuario = ?');
+                    if ($stmtHash) {
+                        $stmtHash->bind_param('si', $hashActualizado, $usuario['id_usuario']);
+                        $stmtHash->execute();
+                        $stmtHash->close();
+                    }
+                }
+
+                // Cambiar el ID impide reutilizar un ID de sesión fijado antes del login.
+                session_regenerate_id(true);
+                $_SESSION = [
+                    'id_usuario' => (int) $usuario['id_usuario'],
+                    'usuario' => $usuario['usuario'],
+                    'nombre' => $usuario['nombre'],
+                    'id_rol' => (int) $usuario['id_rol'],
+                    'rol' => $usuario['rol'],
+                    'ultimo_acceso' => time(),
+                    'token_csrf' => bin2hex(random_bytes(32)),
+                ];
+
+                header('Location: ' . BASE_URL . 'index.php');
+                exit;
+            }
+
+            // El mismo mensaje evita revelar si el usuario existe o está inactivo.
+            $mensajeError = 'Usuario o contraseña incorrectos, o cuenta inactiva.';
+        } catch (Throwable $error) {
+            error_log('Error de inicio de sesión: ' . $error->getMessage());
+            $mensajeError = 'No se pudo iniciar sesión en este momento. Intenta de nuevo.';
+        }
+    }
+}
+
+$tokenCsrf = obtener_token_csrf();
+?>
+<!DOCTYPE html>
+<!--
+* CoreUI - Free Bootstrap Admin Template
+* @version v5.5.0
+* @link https://coreui.io/product/free-bootstrap-admin-template/
+* Copyright (c) 2026 creativeLabs Łukasz Holeczek
+* Licensed under MIT (https://github.com/coreui/coreui-free-bootstrap-admin-template/blob/main/LICENSE)
+-->
+
+<html lang="es">
+  <head>
+    <base href="./../">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta name="description" content="Pantallas de autenticación de la aplicación">
+    <meta name="author" content="Łukasz Holeczek">
+    <meta name="keyword" content="Bootstrap,Admin,Template,Open,Source,jQuery,CSS,HTML,RWD,Dashboard">
+    <title>Iniciar sesión</title>
+    <link rel="apple-touch-icon" sizes="57x57" href="assets/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="assets/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="assets/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="assets/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="assets/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="assets/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="assets/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+    <link rel="manifest" href="assets/favicon/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="assets/favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Vendors styles-->
+    <link rel="stylesheet" href="vendors/simplebar/css/simplebar.css">
+    <link rel="stylesheet" href="css/vendors/simplebar.css">
+    <!-- Main styles for this application-->
+    <link href="css/style.css" rel="stylesheet">
+    <!-- We use those styles to show code examples, you should remove them in your application.-->
+    <link href="css/examples.css" rel="stylesheet">
+    <script src="js/config.js"></script>
+    <script src="js/color-modes.js"></script>
+  </head>
+  <body>
+    <div class="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
+      <div class="container" style="max-width: 32rem">
+        <div class="d-flex flex-column gap-4">
+          <svg role="img" aria-label="Logotipo completo de CoreUI" height="48" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 312 115">
+            <g style="fill: currentColor">
+              <path d="M96 24.124 57 1.608a12 12 0 0 0-12 0L6 24.124a12.034 12.034 0 0 0-6 10.393V79.55a12.033 12.033 0 0 0 6 10.392l39 22.517a12 12 0 0 0 12 0l39-22.517a12.033 12.033 0 0 0 6-10.392V34.517a12.034 12.034 0 0 0-6-10.393ZM94 79.55a4 4 0 0 1-2 3.464l-39 22.517a4 4 0 0 1-4 0L10 83.014a4 4 0 0 1-2-3.464V34.517a4 4 0 0 1 2-3.464L49 8.536a4 4 0 0 1 4 0l39 22.517a4 4 0 0 1 2 3.464V79.55Z" />
+              <path d="M74.022 70.071h-2.866a4 4 0 0 0-1.925.494L51.95 80.05 32 68.531V45.554l19.95-11.519 17.29 9.455a4 4 0 0 0 1.919.49h2.863a2 2 0 0 0 2-2v-2.71a2 2 0 0 0-1.04-1.756L55.793 27.02a8.04 8.04 0 0 0-7.843.09L28 38.626a8.025 8.025 0 0 0-4 6.929V68.53a8 8 0 0 0 4 6.928l19.95 11.519a8.043 8.043 0 0 0 7.843.088l19.19-10.532a2 2 0 0 0 1.038-1.753v-2.71a2 2 0 0 0-2-2Z" />
+              <g transform="translate(118 33)">
+                <path d="M50.745.428c-8.28.01-14.99 6.72-15 15v17.277c0 8.285 6.715 15 15 15 8.284 0 15-6.715 15-15V15.428c-.01-8.28-6.72-14.99-15-15Zm7 32.277a7 7 0 0 1-14 0V15.428a7 7 0 0 1 14 0v17.277ZM14.079 8.488a7.01 7.01 0 0 1 7.868 6.075.99.99 0 0 0 .984.865h6.03a1.01 1.01 0 0 0 1-1.097C29.354 6.206 22.38.046 14.243.447 6.161 1-.086 7.762 0 15.864V32.27c-.087 8.101 6.161 14.864 14.244 15.416 8.137.401 15.11-5.759 15.716-13.883a1.01 1.01 0 0 0-.999-1.098h-6.03a.99.99 0 0 0-.985.865 7.01 7.01 0 0 1-7.868 6.076A7.164 7.164 0 0 1 8 32.461V15.672a7.164 7.164 0 0 1 6.079-7.184ZM96.922 27.994a12.158 12.158 0 0 0 7.184-11.077v-3.7c0-6.71-5.44-12.15-12.149-12.15H75a1 1 0 0 0-1 1v44a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-17h6.621l7.916 17.413a1 1 0 0 0 .91.587h6.591a1 1 0 0 0 .91-1.414l-8.026-17.659Zm-.816-11.077a4.154 4.154 0 0 1-4.148 4.15h-9.852v-12h9.852a4.154 4.154 0 0 1 4.148 4.15v3.7ZM139 1.067h-26a1 1 0 0 0-1 1v44a1 1 0 0 0 1 1h26a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1h-19v-12h13a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1h-13v-10h19a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1ZM177 1.067h-6a1 1 0 0 0-1 1v22.647a7.007 7.007 0 1 1-14 0V2.067a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v22.647a15.003 15.003 0 1 0 30 0V2.067a1 1 0 0 0-1-1Z" />
+                <rect width="8" height="38" x="186" y="1.067" rx="1" />
+              </g>
+            </g>
+          </svg>
+
+          <div class="card p-4">
+            <div class="card-body d-flex flex-column gap-4">
+              <h2 class="h5 text-center">Inicia sesión en tu cuenta</h2>
+              <?php if ($mensajeError !== ''): ?>
+                <div class="alert <?php echo $mensajeEsExito ? 'alert-success' : 'alert-danger'; ?> text-start mb-0" role="alert">
+                  <?php echo htmlspecialchars($mensajeError, ENT_QUOTES, 'UTF-8'); ?>
+                </div>
+              <?php endif; ?>
+              <form class="row gap-3" action="<?php echo BASE_URL; ?>autenticacion/login.php" method="post" autocomplete="on">
+                <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars($tokenCsrf, ENT_QUOTES, 'UTF-8'); ?>">
+                <div>
+                  <label class="form-label" for="usuario">Usuario</label>
+                  <input class="form-control" id="usuario" name="usuario" type="text" value="<?php echo htmlspecialchars($usuarioIngresado, ENT_QUOTES, 'UTF-8'); ?>" placeholder="Tu usuario" autocomplete="username" maxlength="50" required>
+                </div>
+                <div>
+                  <div class="d-flex justify-content-between">
+                    <label class="form-label" for="contrasena">Contraseña</label>
+                    <span class="small text-body-secondary">¿Olvidaste tu contraseña? Contacta al administrador.</span>
+                  </div>
+                  <div class="input-group">
+                    <input class="form-control" id="contrasena" name="contrasena" type="password" placeholder="Tu contraseña" autocomplete="current-password" required>
+                    <span class="input-group-text">
+                      <button class="bg-transparent border-0 p-0 link-secondary" type="button" data-coreui-toggle="tooltip" aria-label="Mostrar contraseña" data-coreui-original-title="Mostrar contraseña">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                          <path class="ci-primary" fill="var(--ci-primary-color, currentcolor)" d="M256 144.927a103.309 103.309 0 1 0 103.309 103.309A103.426 103.426 0 0 0 256 144.927m0 174.618a71.309 71.309 0 1 1 71.309-71.309A71.39 71.39 0 0 1 256 319.545"></path>
+                          <path class="ci-primary" fill="var(--ci-primary-color, currentcolor)" d="m397.222 131.1-.218-.223c-77.75-77.749-204.258-77.749-282.008 0L16 233.79v28.893l98.778 102.689.218.222a199.41 199.41 0 0 0 282.008 0l99-102.911V233.79ZM464 249.79l-89.732 93.285a167.41 167.41 0 0 1-236.536 0L48 249.79v-3.107l89.729-93.283c65.247-65.13 171.3-65.13 236.542 0L464 246.683Z"></path>
+                          <path class="ci-primary" fill="var(--ci-primary-color, currentcolor)" d="M240 232h32v32h-32z"></path>
+                        </svg>
+                      </button>
+                    </span>
+                  </div>
+                </div>
+                <p class="small text-body-secondary mb-0">La sesión se cerrará después de 30 minutos de inactividad.</p>
+                <div>
+                  <button class="btn btn-primary w-100" type="submit">Ingresar</button>
+                </div>
+              </form>
+              <div class="position-relative d-none">
+                <hr>
+                <div class="position-absolute top-50 start-50 translate-middle bg-body px-2 text-body-tertiary text-uppercase small">o</div>
+              </div>
+              <div class="row d-none">
+                <div class="col">
+                  <a class="btn btn-outline w-100" href="#">
+                    <svg class="icon me-1" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M24 12.27C24 11.48 23.9284 10.73 23.8058 9.99998H12.2605V14.51H18.871C18.5747 15.99 17.7062 17.24 16.4189 18.09V21.09H20.3627C22.6717 19 24 15.92 24 12.27Z" fill="#4285F4"></path>
+                      <path d="M12.2606 24C15.571 24 18.3398 22.92 20.3628 21.09L16.419 18.09C15.3156 18.81 13.9158 19.25 12.2606 19.25C9.06269 19.25 6.35515 17.14 5.38453 14.29H1.31812V17.38C3.33089 21.3 7.46882 24 12.2606 24Z" fill="#34A853"></path>
+                      <path d="M5.38442 14.2901C5.12899 13.5701 4.99617 12.8001 4.99617 12.0001C4.99617 11.2001 5.13921 10.4301 5.38442 9.71009V6.62009H1.31801C0.480203 8.24009 0 10.0601 0 12.0001C0 13.9401 0.480203 15.7601 1.31801 17.3801L5.38442 14.2901Z" fill="#FBBC05"></path>
+                      <path d="M12.2606 4.74998C14.0691 4.74998 15.6834 5.35999 16.9605 6.54999L20.4548 3.12999C18.3398 1.18999 15.571 -1.52588e-05 12.2606 -1.52588e-05C7.46882 -1.52588e-05 3.33089 2.69999 1.31812 6.61999L5.38453 9.70999C6.35515 6.85999 9.06269 4.74998 12.2606 4.74998Z" fill="#EA4335"></path>
+                    </svg>
+                    Iniciar sesión con Google
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-center text-body-secondary">
+            Las cuentas son creadas por un administrador.
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- CoreUI and necessary plugins-->
+    <script src="vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
+    <script src="vendors/simplebar/js/simplebar.min.js"></script>
+    <script>
+      const header = document.querySelector("header.header");
+
+      document.addEventListener("scroll", () => {
+        if (header) {
+          header.classList.toggle("shadow-sm", document.documentElement.scrollTop > 0);
+        }
+      });
+    </script>
+    <script>
+      const tooltipTriggerList = document.querySelectorAll('[data-coreui-toggle="tooltip"]');
+      const tooltipList = [...tooltipTriggerList].map((tooltipTriggerEl) => new coreui.Tooltip(tooltipTriggerEl));
+    </script>
+  </body>
+</html>

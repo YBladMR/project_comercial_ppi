@@ -1,4 +1,6 @@
-<?php 
+<?php
+require_once __DIR__ . '/autenticacion/seguridad.php';
+requerir_permiso('panel.ver'); 
 $titulo_pagina = "Panel Principal"; 
 include_once(__DIR__ . '/config.php');
 ?>

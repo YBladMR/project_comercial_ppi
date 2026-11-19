@@ -1,4 +1,6 @@
-<?php $titulo_pagina = "Lista de Categorías";
+<?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
+requerir_permiso('categorias.consultar'); $titulo_pagina = "Lista de Categorías";
 include_once(__DIR__ . '/../config.php'); ?>
 <!DOCTYPE html>
 <html lang="es">

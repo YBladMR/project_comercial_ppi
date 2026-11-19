@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
+requerir_permiso('proveedores.gestionar');
 $titulo_pagina = "Registrar Proveedor";
 include_once(__DIR__ . '/../config.php');
 ?>

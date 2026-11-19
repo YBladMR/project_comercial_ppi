@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $bodega = trim((string) ($_REQUEST["bodega"] ?? ''));
@@ -8,6 +9,14 @@ $nivel = trim((string) ($_REQUEST["nivel"] ?? ''));
 $id = $_REQUEST['id_ubicacion'] ?? '';
 
 $opcion = $_REQUEST["opcion"] ?? '';
+$operacionesGestionUbicacion = ['guardar', 'modificar', 'eliminar'];
+requerir_permiso(
+    in_array($opcion, $operacionesGestionUbicacion, true) ? 'ubicaciones.gestionar' : 'ubicaciones.consultar',
+    true
+);
+if (in_array($opcion, $operacionesGestionUbicacion, true)) {
+    requerir_post_api();
+}
 
 function ubicacionCombinacionExiste($conexion, $bodega, $pasillo, $estante, $nivel, $idExcluir = 0)
 {

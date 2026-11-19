@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $nombre = trim((string) ($_REQUEST["nombre"] ?? ''));
@@ -9,6 +10,14 @@ $estado = $_REQUEST["estado"] ?? '';
 $id = $_REQUEST['id_categoria'] ?? '';
 
 $opcion = $_REQUEST["opcion"] ?? '';
+$operacionesGestionCategoria = ['guardar', 'modificar', 'eliminar', 'cambiarEstado'];
+requerir_permiso(
+    in_array($opcion, $operacionesGestionCategoria, true) ? 'categorias.gestionar' : 'categorias.consultar',
+    true
+);
+if (in_array($opcion, $operacionesGestionCategoria, true)) {
+    requerir_post_api();
+}
 
 if ($opcion == "guardar") {
     require_once "../conexion.php";

@@ -1,6 +1,8 @@
 <?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
 header('Content-Type: application/json; charset=utf-8');
 $opcion = $_POST['opcion'] ?? $_GET['opcion'] ?? '';
+requerir_permiso('categorias.consultar', true);
 
 if ($opcion == "consultar") {
     require_once "../conexion.php";

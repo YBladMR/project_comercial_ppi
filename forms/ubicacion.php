@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
+requerir_permiso('ubicaciones.gestionar');
 $titulo_pagina = "Registrar Ubicación";
 include_once(__DIR__ . '/../config.php');
 ?>
