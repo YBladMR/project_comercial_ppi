@@ -1,4 +1,6 @@
-<?php $titulo_pagina = "Lista de Productos";
+<?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
+requerir_permiso('productos.consultar'); $titulo_pagina = "Lista de Productos";
 include_once(__DIR__ . '/../config.php');?>
 <!DOCTYPE html>
 <html lang="es">

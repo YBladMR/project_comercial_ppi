@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $tipoP       = strtolower(trim($_POST['tipo_persona'] ?? $_POST['tipoP'] ?? ''));
@@ -11,6 +12,14 @@ $direccion   = trim($_POST['direccion'] ?? '');
 $estado      = strtolower(trim($_POST['estado'] ?? ''));
 $idproveedor = (int)($_POST['idproveedor'] ?? 0);
 $opcion      = $_POST['opcion'] ?? '';
+$operacionesGestionProveedor = ['guardar', 'modificar', 'baja', 'consultarDUI', 'consultarNIT'];
+requerir_permiso(
+    in_array($opcion, $operacionesGestionProveedor, true) ? 'proveedores.gestionar' : 'proveedores.consultar',
+    true
+);
+if (in_array($opcion, ['guardar', 'modificar', 'baja'], true)) {
+    requerir_post_api();
+}
 
 // Filtros de la tabla
 $filtroNombre = trim($_POST['filtroNombre'] ?? '');

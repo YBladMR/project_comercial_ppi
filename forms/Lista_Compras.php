@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
+requerir_permiso('compras.consultar');
 $titulo_pagina = "Consultar Compras";
 include_once(__DIR__ . '/../config.php');
 ?>
@@ -37,7 +39,6 @@ include_once(__DIR__ . '/../config.php');
         <a href="Compra.php" class="btn btn-primary"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Registrar compra</a>
       </section>
 
-      <div id="avisoUsuarioAnular" class="alert alert-warning compras-mensaje" role="status" hidden></div>
 
       <section class="card mb-4">
         <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -68,9 +69,7 @@ include_once(__DIR__ . '/../config.php');
         </div>
         <div class="card-footer d-flex justify-content-between align-items-center">
           <span id="totalCompras">Total de registros: 0</span>
-          <select id="usuarioAnulacion" class="form-select form-select-sm" style="max-width:260px" aria-label="Usuario que anula la compra">
-            <option value="">Usuario que anula</option>
-          </select>
+          <span class="small text-body-secondary">Las anulaciones quedan registradas con la cuenta autenticada.</span>
         </div>
       </section>
     </div>

@@ -1,4 +1,26 @@
+<?php
+require_once __DIR__ . '/autenticacion/seguridad.php';
+requerir_autenticacion();
+?>
+<script>
+(() => {
+  const tokenCsrf = <?php echo json_encode(obtener_token_csrf(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+  const fetchOriginal = window.fetch.bind(window);
 
+  window.fetch = (entrada, opciones = {}) => {
+    const metodoEntrada = typeof Request !== "undefined" && entrada instanceof Request ? entrada.method : "GET";
+    const metodo = String(opciones.method || metodoEntrada).toUpperCase();
+
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(metodo)) {
+      const encabezados = new Headers(opciones.headers || (typeof Request !== "undefined" && entrada instanceof Request ? entrada.headers : undefined));
+      encabezados.set("X-CSRF-Token", tokenCsrf);
+      opciones = { ...opciones, headers: encabezados };
+    }
+
+    return fetchOriginal(entrada, opciones);
+  };
+})();
+</script>
 <div class="sidebar sidebar-dark sidebar-fixed border-end" id="sidebar">
   <style>
   #sidebar {
@@ -174,6 +196,7 @@
       </ul>
     </li>
 
+    <?php if (tiene_permiso('usuarios.gestionar') || tiene_permiso('roles.gestionar')): ?>
     <li class="nav-divider"></li>
     <li class="nav-title">Configuración</li>
 
@@ -189,6 +212,7 @@
         <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Roles</a></li>
       </ul>
     </li>
+    <?php endif; ?>
   </ul>
 
   <div class="sidebar-footer border-top d-none d-md-flex">
@@ -249,14 +273,18 @@
         <li class="nav-item dropdown">
           <a class="nav-link py-0 pe-0" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
             <div class="avatar avatar-md">
-              <img class="avatar-img" src="<?php echo BASE_URL; ?>assets/img/avatars/8.jpg" alt="user@email.com">
+              <img class="avatar-img" src="<?php echo BASE_URL; ?>assets/img/avatars/8.jpg" alt="<?php echo htmlspecialchars(obtener_nombre_usuario(), ENT_QUOTES, 'UTF-8'); ?>">
             </div>
           </a>
           <div class="dropdown-menu dropdown-menu-end pt-0">
-            <div class="dropdown-header bg-body-tertiary text-body-secondary fw-semibold rounded-top mb-2">Account</div>
-            <a class="dropdown-item" href="#">Profile</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="authentication/login.html">Logout</a>
+            <div class="dropdown-header bg-body-tertiary text-body-secondary fw-semibold rounded-top mb-2">
+              <?php echo htmlspecialchars(obtener_nombre_usuario(), ENT_QUOTES, 'UTF-8'); ?><br>
+              <small><?php echo htmlspecialchars(obtener_nombre_rol(), ENT_QUOTES, 'UTF-8'); ?></small>
+            </div>
+            <form method="post" action="<?php echo BASE_URL; ?>autenticacion/Cerrar_Sesion.php">
+              <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars(obtener_token_csrf(), ENT_QUOTES, 'UTF-8'); ?>">
+              <button class="dropdown-item" type="submit">Cerrar sesión</button>
+            </form>
           </div>
         </li>
       </ul>

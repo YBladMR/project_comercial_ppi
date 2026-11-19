@@ -3,14 +3,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!formulario) return;
 
   const selProveedor = document.getElementById("id_proveedor");
-  const selUsuario = document.getElementById("id_usuario");
   const cuerpo = document.getElementById("detalleCompra");
   const btnAgregar = document.getElementById("btnAgregarLinea");
   const btnGuardar = document.getElementById("btnGuardarCompra");
   const mensaje = document.getElementById("mensajeCompra");
   const ivaPorcentaje = 0.13;
   let productos = [];
-  let cantidadUsuarios = 0;
 
   function escapar(valor) {
     return String(valor ?? "").replace(/[&<>"']/g, (c) => ({
@@ -24,11 +22,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function actualizarDisponibilidad() {
     const hayCatalogos = productos.length > 0 && selProveedor.value !== "";
-    btnGuardar.disabled = !hayCatalogos || cantidadUsuarios === 0;
-    if (cantidadUsuarios === 0) {
-      mensaje.className = "alert alert-warning compra-mensaje";
-      mensaje.textContent = "No hay usuarios activos. Como compra exige id_usuario, el registro quedará habilitado cuando exista un usuario activo o se integre el login.";
-    } else if (productos.length === 0 || selProveedor.options.length <= 1) {
+    btnGuardar.disabled = !hayCatalogos;
+    if (productos.length === 0 || selProveedor.options.length <= 1) {
       mensaje.className = "alert alert-warning compra-mensaje";
       mensaje.textContent = "Registre al menos un proveedor activo y un producto activo antes de crear una compra.";
     } else {
@@ -135,9 +130,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     productos = catalogos.productos || [];
     selProveedor.innerHTML = '<option value="">Seleccione un proveedor</option>' +
       (catalogos.proveedores || []).map((p) => `<option value="${escapar(p.id_proveedor)}">${escapar(p.nombre_razon_social)}</option>`).join("");
-    selUsuario.innerHTML = '<option value="">Seleccione un usuario</option>' +
-      (catalogos.usuarios || []).map((u) => `<option value="${escapar(u.id_usuario)}">${escapar(u.nombre)}</option>`).join("");
-    cantidadUsuarios = (catalogos.usuarios || []).length;
     agregarLinea();
     actualizarDisponibilidad();
   }
@@ -151,8 +143,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       notificar("warning", mensaje.textContent);
       return;
     }
-    if (!selProveedor.value || !selUsuario.value) {
-      notificar("warning", "Seleccione proveedor y usuario");
+    if (!selProveedor.value) {
+      notificar("warning", "Seleccione un proveedor");
       return;
     }
 
@@ -177,7 +169,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const datos = new FormData();
       datos.append("opcion", "guardar");
       datos.append("id_proveedor", selProveedor.value);
-      datos.append("id_usuario", selUsuario.value);
       datos.append("detalle", JSON.stringify(detalles));
       const respuesta = await fetch("../dao/DAOCompras.php", { method: "POST", body: datos });
       if (!respuesta.ok) throw new Error("Error HTTP: " + respuesta.status);
@@ -192,7 +183,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error("Error al registrar la compra:", error);
       notificar("danger", "No se pudo registrar la compra");
     } finally {
-      btnGuardar.disabled = cantidadUsuarios === 0 || productos.length === 0 || selProveedor.options.length <= 1;
+      btnGuardar.disabled = productos.length === 0 || selProveedor.options.length <= 1 || !selProveedor.value;
       btnGuardar.innerHTML = '<i class="bi bi-save" aria-hidden="true"></i> Registrar compra';
     }
   });

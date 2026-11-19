@@ -4,8 +4,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const filtroEstado = document.getElementById("filtroEstadoCompra");
   const totalCompras = document.getElementById("totalCompras");
-  const usuarioAnulacion = document.getElementById("usuarioAnulacion");
-  const avisoUsuario = document.getElementById("avisoUsuarioAnular");
   const modalDetalleEl = document.getElementById("modalDetalleCompra");
   const contenidoDetalle = document.getElementById("contenidoDetalleCompra");
   const modalDetalle =
@@ -13,7 +11,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       ? coreui.Modal.getOrCreateInstance(modalDetalleEl)
       : null;
   let compras = [];
-  let usuarios = [];
 
   function escapar(valor) {
     return String(valor ?? "").replace(
@@ -59,40 +56,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td class="text-center"><span class="badge ${registrada ? "text-bg-success" : "text-bg-secondary"}">${registrada ? "Registrada" : "Anulada"}</span></td>
           <td><span class="compras-acciones">
             <button type="button" class="btn btn-outline-primary btn-sm btn-ver-compra" aria-label="Ver detalle" title="Ver detalle"><i class="bi bi-eye"></i></button>
-            ${registrada ? `<button type="button" class="btn btn-outline-danger btn-sm btn-anular-compra" ${usuarios.length === 0 || !usuarioAnulacion.value ? "disabled" : ""} aria-label="Anular compra" title="Anular compra"><i class="bi bi-x-circle"></i></button>` : ""}
+            ${registrada ? `<button type="button" class="btn btn-outline-danger btn-sm btn-anular-compra" aria-label="Anular compra" title="Anular compra"><i class="bi bi-x-circle"></i></button>` : ""}
           </span></td>
         </tr>`;
       })
       .join("");
-  }
-
-  async function cargarUsuarios() {
-    const datos = new FormData();
-    datos.append("opcion", "consultarCatalogos");
-    const respuesta = await fetch("../dao/DAOCompras.php", {
-      method: "POST",
-      body: datos,
-    });
-    if (!respuesta.ok) throw new Error("Error HTTP: " + respuesta.status);
-    const resultado = await respuesta.json();
-    if (!resultado.estado)
-      throw new Error(
-        resultado.mensaje || "No se pudieron cargar los usuarios",
-      );
-    usuarios = resultado.datos.usuarios || [];
-    usuarioAnulacion.innerHTML =
-      '<option value="">Usuario que anula</option>' +
-      usuarios
-        .map(
-          (u) =>
-            `<option value="${escapar(u.id_usuario)}">${escapar(u.nombre)}</option>`,
-        )
-        .join("");
-    avisoUsuario.hidden = usuarios.length > 0;
-    if (usuarios.length === 0) {
-      avisoUsuario.textContent =
-        "No hay usuarios activos. Las compras se pueden consultar, pero para anularlas se requiere un usuario activo.";
-    }
   }
 
   async function cargarCompras() {
@@ -148,11 +116,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function anularCompra(compra) {
-    if (!usuarioAnulacion.value) {
-      notificar("warning", "Seleccione el usuario que anula la compra");
-      usuarioAnulacion.focus();
-      return;
-    }
     const confirmado = await confirmarAccion(
       `¿Anular la compra #${compra.id_compra} de ${compra.proveedor}? Solo se anulará si sus productos no tienen movimientos posteriores.`,
       "Anular compra",
@@ -164,7 +127,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const datos = new FormData();
       datos.append("opcion", "anular");
       datos.append("id_compra", compra.id_compra);
-      datos.append("id_usuario", usuarioAnulacion.value);
       const respuesta = await fetch("../dao/DAOCompras.php", {
         method: "POST",
         body: datos,
@@ -187,7 +149,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   filtroEstado.addEventListener("change", dibujar);
-  usuarioAnulacion.addEventListener("change", dibujar);
   cuerpo.addEventListener("click", async (e) => {
     const fila = e.target.closest("tr[data-id]");
     if (!fila) return;
@@ -204,7 +165,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   try {
-    await cargarUsuarios();
     await cargarCompras();
   } catch (error) {
     console.error("Error al cargar compras:", error);

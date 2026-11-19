@@ -1,8 +1,20 @@
 <?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
 header('Content-Type: application/json; charset=utf-8');
-require_once "../conexion.php";
 
 $opcion = $_POST['opcion'] ?? $_GET['opcion'] ?? '';
+$permisosCompra = [
+    'consultarCatalogos' => 'compras.registrar',
+    'guardar' => 'compras.registrar',
+    'consultar' => 'compras.consultar',
+    'consultarDetalle' => 'compras.consultar',
+    'anular' => 'compras.anular',
+];
+requerir_permiso($permisosCompra[$opcion] ?? 'compras.operacion_desconocida', true);
+if (in_array($opcion, ['guardar', 'anular'], true)) {
+    requerir_post_api();
+}
+require_once __DIR__ . '/../conexion.php';
 
 function responderCompra($estado, $mensaje, $datos = null) {
     $respuesta = ["estado" => $estado, "mensaje" => $mensaje];
@@ -68,14 +80,9 @@ if ($opcion === "consultarCatalogos") {
         $resultado = $conexion->query($sqlProductos);
         while ($fila = $resultado->fetch_assoc()) $productos[] = $fila;
 
-        $usuarios = [];
-        $resultado = $conexion->query("SELECT id_usuario, nombre FROM usuario WHERE estado='activo' ORDER BY nombre");
-        while ($fila = $resultado->fetch_assoc()) $usuarios[] = $fila;
-
         responderCompra(true, "Catálogos cargados", [
             "proveedores" => $proveedores,
-            "productos" => $productos,
-            "usuarios" => $usuarios
+            "productos" => $productos
         ]);
     } catch (Throwable $e) {
         error_log("DAOCompras consultarCatalogos: " . $e->getMessage());
@@ -138,12 +145,13 @@ if ($opcion === "consultarDetalle") {
 
 if ($opcion === "guardar") {
     $idProveedor = $_POST['id_proveedor'] ?? '';
-    $idUsuario = $_POST['id_usuario'] ?? '';
+    // El responsable se obtiene de la sesión, nunca de un ID enviado por el navegador.
+    $idUsuario = (int) ($_SESSION['id_usuario'] ?? 0);
     $detalleJson = $_POST['detalle'] ?? '';
     $detalles = json_decode($detalleJson, true);
 
     if (!enteroPositivo($idProveedor)) responderCompra(false, "Seleccione un proveedor válido");
-    if (!enteroPositivo($idUsuario)) responderCompra(false, "Seleccione un usuario activo");
+    if (!enteroPositivo($idUsuario)) responderCompra(false, "La sesión de usuario no es válida");
     if (!is_array($detalles) || count($detalles) === 0) responderCompra(false, "Agregue al menos un producto a la compra");
 
     $lineas = [];
@@ -278,9 +286,10 @@ if ($opcion === "guardar") {
 
 if ($opcion === "anular") {
     $idCompra = $_POST['id_compra'] ?? '';
-    $idUsuario = $_POST['id_usuario'] ?? '';
+    // La anulación también queda atribuida al usuario autenticado.
+    $idUsuario = (int) ($_SESSION['id_usuario'] ?? 0);
     if (!enteroPositivo($idCompra)) responderCompra(false, "Compra no válida");
-    if (!enteroPositivo($idUsuario)) responderCompra(false, "Seleccione un usuario activo");
+    if (!enteroPositivo($idUsuario)) responderCompra(false, "La sesión de usuario no es válida");
 
     $conexion->begin_transaction();
     try {

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $idproducto  = $_POST['id_producto'] ?? '';
@@ -16,6 +17,14 @@ $profundidad = vacioANulo($_POST['profundidad_cm'] ?? '');
 $peso        = vacioANulo($_POST['peso_kg'] ?? '');
 
 $opcion = $_POST['opcion'] ?? $_GET['opcion'] ?? '';
+$operacionesGestionProducto = ['guardar', 'modificar', 'asignarMargen', 'cambiarEstado'];
+requerir_permiso(
+    in_array($opcion, $operacionesGestionProducto, true) ? 'productos.gestionar' : 'productos.consultar',
+    true
+);
+if (in_array($opcion, $operacionesGestionProducto, true)) {
+    requerir_post_api();
+}
 
 if ($opcion == "guardar") {
     $error = validarProducto($nombre, $idcategoria, $descripcion, $material, $alto, $ancho, $profundidad, $peso, $stockminimo);
