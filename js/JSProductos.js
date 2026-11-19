@@ -11,10 +11,8 @@ const ancho = document.getElementById("ancho_cm");
 const profundidad = document.getElementById("profundidad_cm");
 const pesoKg = document.getElementById("peso_kg");
 const stockMinimo = document.getElementById("stock_minimo");
-const precioVenta = document.getElementById("precio_venta");
 
 const MAX_MEDIDA = 999.99;
-const MAX_PRECIO = 9999.99;
 
 let htmlBoton = btnGuardar ? btnGuardar.innerHTML : "";
 
@@ -83,9 +81,8 @@ function limpiarCampos() {
     campo.value = "";
   });
   stockMinimo.value = "0";
-  precioVenta.value = "0.00";
   categoria.value = "0";
-  [nombre, categoria, material, descripcion, alto, ancho, profundidad, pesoKg, stockMinimo, precioVenta]
+  [nombre, categoria, material, descripcion, alto, ancho, profundidad, pesoKg, stockMinimo]
     .forEach(sinMarca);
   nombre.focus();
 }
@@ -102,14 +99,12 @@ if (formulario) {
   soloNumeros(ancho, true);
   soloNumeros(profundidad, true);
   soloNumeros(pesoKg, true);
-  soloNumeros(precioVenta, true);
   soloNumeros(stockMinimo, false);
 
   alto.addEventListener("blur", () => validarDecimal(alto, false, MAX_MEDIDA));
   ancho.addEventListener("blur", () => validarDecimal(ancho, false, MAX_MEDIDA));
   profundidad.addEventListener("blur", () => validarDecimal(profundidad, false, MAX_MEDIDA));
   pesoKg.addEventListener("blur", () => validarDecimal(pesoKg, false, MAX_MEDIDA));
-  precioVenta.addEventListener("blur", () => validarDecimal(precioVenta, true, MAX_PRECIO));
   stockMinimo.addEventListener("blur", () => validarEntero(stockMinimo));
 
   btnCancelar.addEventListener("click", function () {
@@ -124,8 +119,7 @@ if (formulario) {
       validarDecimal(ancho, false, MAX_MEDIDA),
       validarDecimal(profundidad, false, MAX_MEDIDA),
       validarDecimal(pesoKg, false, MAX_MEDIDA),
-      validarEntero(stockMinimo),
-      validarDecimal(precioVenta, true, MAX_PRECIO)
+      validarEntero(stockMinimo)
     ];
 
     if (!resultados.every(Boolean)) {
@@ -234,7 +228,6 @@ async function cargarProducto(idProducto) {
   profundidad.value = d.profundidad ?? "";
   pesoKg.value = d.peso_kg ?? "";
   stockMinimo.value = d.stock_minimo ?? 0;
-  precioVenta.value = d.precio_venta ?? "0.00";
 
   categoria.value = d.id_categoria;
   if (categoria.value !== String(d.id_categoria)) {
