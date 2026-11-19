@@ -138,8 +138,8 @@
         Compras
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar/Anular</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Compra.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Lista_Compras.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar/Anular</a></li>
       </ul>
     </li>
 
