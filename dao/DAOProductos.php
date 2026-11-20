@@ -215,8 +215,8 @@ if ($opcion == "consultar") {
         $sql = "SELECT p.id_producto, p.nombre, c.nombre AS categoria,
                        p.material, p.alto_cm, p.ancho_cm, p.profundidad_cm, p.peso_kg,
                        p.stock_minimo, p.precio_venta, p.margen_ganancia, p.estado,
-                       c.margen_ganancia AS margen_categoria,
-                       COALESCE(i.costo_promedio, 0) AS costo_promedio, 0 AS existencia
+                       COALESCE(i.costo_promedio, 0) AS costo_promedio,
+                       COALESCE(i.existencia, 0) AS existencia
                 FROM producto AS p
                 INNER JOIN categoria AS c ON c.id_categoria = p.id_categoria
                 LEFT JOIN inventario AS i ON i.id_producto = p.id_producto
@@ -241,7 +241,6 @@ if ($opcion == "consultar") {
                 'existencia'   => $fila['existencia'],
                 'precio_venta' => $fila['precio_venta'],
                 'margen_ganancia' => $fila['margen_ganancia'],
-                'margen_categoria' => $fila['margen_categoria'],
                 'costo_promedio' => $fila['costo_promedio'],
                 'estado'       => $fila['estado']
             ];
