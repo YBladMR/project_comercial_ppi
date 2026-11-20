@@ -72,9 +72,8 @@ if ($opcion === "consultarCatalogos") {
 
         $productos = [];
         $sqlProductos = "SELECT p.id_producto, p.nombre, p.precio_venta,
-                                p.margen_ganancia, c.margen_ganancia AS margen_categoria
+                                p.margen_ganancia
                          FROM producto AS p
-                         INNER JOIN categoria AS c ON c.id_categoria=p.id_categoria
                          WHERE p.estado='activo'
                          ORDER BY p.nombre";
         $resultado = $conexion->query($sqlProductos);
@@ -206,9 +205,8 @@ if ($opcion === "guardar") {
         $idCompra = $conexion->insert_id;
         $stmtCompra->close();
 
-        $stmtProducto = $conexion->prepare("SELECT p.margen_ganancia, c.margen_ganancia AS margen_categoria
+        $stmtProducto = $conexion->prepare("SELECT p.margen_ganancia
                                             FROM producto AS p
-                                            INNER JOIN categoria AS c ON c.id_categoria=p.id_categoria
                                             WHERE p.id_producto=? AND p.estado='activo' FOR UPDATE");
         $stmtDetalle = $conexion->prepare("INSERT INTO detalle_compra (id_compra, id_producto, cantidad, costo_unitario, subtotal)
                                            VALUES (?, ?, ?, ?, ?)");
@@ -253,9 +251,7 @@ if ($opcion === "guardar") {
                 : round((($existenciaAnterior * $costoAnterior) + ($cantidad * $costoUnitario)) / $existenciaNueva, 2);
             if ($costoPromedioNuevo > 9999.99) throw new DomainException("El costo promedio supera el máximo permitido en inventario (9,999.99)");
 
-            $margen = $producto['margen_ganancia'] !== null
-                ? (float) $producto['margen_ganancia']
-                : (float) $producto['margen_categoria'];
+            $margen = (float) ($producto['margen_ganancia'] ?? 0);
             if ($margen < 0 || $margen > 100) throw new DomainException("El margen configurado para un producto supera el 100%");
             $precioVenta = calcularPrecioVenta($costoPromedioNuevo, $margen);
             $saldoTotal = round($existenciaNueva * $costoPromedioNuevo, 2);
@@ -326,8 +322,8 @@ if ($opcion === "anular") {
         $stmtAnterior = $conexion->prepare("SELECT existencias, costo_promedio FROM kardex
                                            WHERE id_producto=? AND id_kardex<? ORDER BY id_kardex DESC LIMIT 1");
         $stmtInventario = $conexion->prepare("SELECT existencia, costo_promedio FROM inventario WHERE id_producto=? FOR UPDATE");
-        $stmtProducto = $conexion->prepare("SELECT p.margen_ganancia, c.margen_ganancia AS margen_categoria
-                                           FROM producto AS p INNER JOIN categoria AS c ON c.id_categoria=p.id_categoria
+        $stmtProducto = $conexion->prepare("SELECT p.margen_ganancia
+                                           FROM producto AS p
                                            WHERE p.id_producto=? FOR UPDATE");
         $stmtActualizarInventario = $conexion->prepare("UPDATE inventario SET existencia=?, costo_promedio=? WHERE id_producto=?");
         $stmtActualizarPrecio = $conexion->prepare("UPDATE producto SET precio_venta=? WHERE id_producto=?");
@@ -373,9 +369,8 @@ if ($opcion === "anular") {
             $stmtProducto->execute();
             $producto = $stmtProducto->get_result()->fetch_assoc();
             if (!$producto) throw new RuntimeException("No se encontró el producto asociado a la compra");
-            $margen = $producto['margen_ganancia'] !== null
-                ? (float) $producto['margen_ganancia']
-                : (float) $producto['margen_categoria'];
+            $margen = (float) ($producto['margen_ganancia'] ?? 0);
+            if ($margen < 0 || $margen > 100) throw new DomainException("El margen configurado para un producto supera el 100%");
             $precioVenta = calcularPrecioVenta($costoPromedioNuevo, $margen);
             $saldoTotal = round($existenciaNueva * $costoPromedioNuevo, 2);
 
