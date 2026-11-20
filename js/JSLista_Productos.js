@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function abrirModalMargen(producto) {
         productoParaMargen = producto;
-        const margenActual = Number(producto.margen_ganancia ?? producto.margen_categoria ?? 0);
+        const margenActual = Number(producto.margen_ganancia ?? 0);
         inputMargen.value = margenActual > 0 ? margenActual.toFixed(2) : "";
         inputMargen.classList.remove("is-invalid", "is-valid");
         detalleMargen.textContent = `${producto.nombre} · Costo promedio: $${Number(producto.costo_promedio ?? 0).toFixed(2)} · Precio actual: $${Number(producto.precio_venta ?? 0).toFixed(2)}`;
