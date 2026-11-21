@@ -19,6 +19,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const pager = document.getElementById("table-pagination");
     const contador = document.getElementById("total-registros");
     const vacio = document.getElementById("estado-vacio");
+    const modalDetalleEl = document.getElementById("modalDetalleProveedor");
+    const contenidoDetalle = document.getElementById("contenidoDetalleProveedor");
+    const modalDetalle = typeof coreui !== "undefined" && coreui.Modal
+        ? coreui.Modal.getOrCreateInstance(modalDetalleEl)
+        : null;
 
     let proveedores = [];
     let cargando = true;
@@ -129,6 +134,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         return datos.length ? datos.join("") : '<span class="lp-sub">Sin datos de contacto</span>';
     }
 
+    function verDetalles(proveedor) {
+        const detalles = [
+            ["Tipo de persona", proveedor.tipo_persona === "juridica" ? "Persona jurídica" : "Persona natural"],
+            ["DUI", proveedor.dui],
+            ["NIT", proveedor.nit],
+            ["Teléfono", proveedor.telefono],
+            ["Correo electrónico", proveedor.correo_electronico],
+            ["Dirección", proveedor.direccion],
+            ["Fecha de registro", proveedor.fecha_registro],
+            ["Estado", proveedor.estado === "activo" ? "Activo" : "Inactivo"]
+        ];
+
+        document.getElementById("tituloDetalleProveedor").textContent = proveedor.nombre_razon_social;
+        contenidoDetalle.innerHTML = `<div class="row g-3">${detalles.map(([etiqueta, valor]) => `
+            <div class="col-sm-6">
+                <div class="rounded border p-3 h-100">
+                    <div class="small text-body-secondary mb-1">${esc(etiqueta)}</div>
+                    <div class="fw-semibold text-break">${esc(valor || "No registrado")}</div>
+                </div>
+            </div>`).join("")}</div>`;
+        modalDetalle?.show();
+    }
+
     function filaHTML(p) {
         const activo = p.estado === "activo";
         const tipo = p.tipo_persona === "juridica" ? "Persona jurídica" : "Persona natural";
@@ -140,17 +168,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <span class="lp-proveedor-ico"><i class="bi ${p.tipo_persona === "juridica" ? "bi-buildings" : "bi-person-vcard"}" aria-hidden="true"></i></span>
                     <span>
                         <span class="lp-proveedor-nom d-block">${esc(p.nombre_razon_social)}</span>
-                        <span class="lp-sub">ID: ${esc(p.id_proveedor)}</span>
                     </span>
                 </div>
             </td>
             <td><span class="lp-tipo">${esc(tipo)}</span></td>
-            <td class="lp-identidad">${identidadHTML(p)}</td>
-            <td class="lp-contacto">${contactoHTML(p)}</td>
             <td>${esc(p.fecha_registro || "—")}</td>
             <td class="lp-centro"><span class="lp-pill ${activo ? "activo" : "inactivo"}">${activo ? "Activo" : "Inactivo"}</span></td>
             <td class="lp-centro lp-col-acc">
                 <span class="lp-acc">
+                    <button type="button" class="lp-ib btn-detalles" title="Ver detalles" aria-label="Ver detalles de ${esc(p.nombre_razon_social)}">
+                        <i class="bi bi-eye" aria-hidden="true"></i>
+                    </button>
                     <button type="button" class="lp-ib btn-editar" title="Modificar proveedor" aria-label="Modificar ${esc(p.nombre_razon_social)}">
                         <i class="bi bi-pencil" aria-hidden="true"></i>
                     </button>
@@ -316,7 +344,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const proveedor = proveedores.find((p) => p.id_proveedor === fila.dataset.id);
         if (!proveedor) return;
 
-        if (evento.target.closest(".btn-editar")) {
+        if (evento.target.closest(".btn-detalles")) {
+            verDetalles(proveedor);
+        } else if (evento.target.closest(".btn-editar")) {
             location.href = "proveedor.php?id=" + encodeURIComponent(proveedor.id_proveedor);
         } else if (evento.target.closest(".btn-estado")) {
             await darDeBaja(proveedor);
