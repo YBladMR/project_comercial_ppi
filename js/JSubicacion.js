@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const botonCancelar = document.getElementById("btnCancelar");
     const textoBotonGuardar = document.getElementById("textoGuardar");
     const tituloFormulario = document.getElementById("tituloFormulario");
+    const avisoAsignada = document.getElementById("avisoUbicacionAsignada");
     const urlDao = "../dao/DAOubicacion.php";
 
     let ubicaciones = [];
@@ -156,6 +157,17 @@ document.addEventListener("DOMContentLoaded", async function () {
         textoBotonGuardar.textContent = "Modificar ubicación";
     }
 
+    function bloquearEdicionAsignada(mensaje) {
+        campos.forEach(function (campo, indice) {
+            campo.disabled = true;
+            ocultarLista(indice);
+        });
+        botonGuardar.disabled = true;
+        textoBotonGuardar.textContent = "Ubicación asignada";
+        avisoAsignada.textContent = mensaje;
+        avisoAsignada.hidden = false;
+    }
+
     function limpiarFormulario() {
         formulario.reset();
 
@@ -262,11 +274,12 @@ document.addEventListener("DOMContentLoaded", async function () {
                 method: "POST",
                 body: datos
             });
-            if (!respuesta.ok) throw new Error("Error HTTP: " + respuesta.status);
-
             const resultado = await respuesta.json();
 
             if (!resultado.estado) {
+                if (resultado.codigo === "ubicacion_asignada") {
+                    bloquearEdicionAsignada(resultado.mensaje || "Esta ubicación está asignada a productos.");
+                }
                 notificar("danger", resultado.mensaje || "No se pudo guardar la ubicación.");
                 return;
             }
@@ -279,8 +292,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             console.error("Error al guardar la ubicación:", error);
             notificar("danger", "No se pudo completar la operación.");
         } finally {
-            botonGuardar.disabled = false;
-            textoBotonGuardar.textContent = textoOriginal;
+            const edicionBloqueada = campos.some(function (campo) { return campo.disabled; });
+            botonGuardar.disabled = edicionBloqueada;
+            if (!edicionBloqueada) textoBotonGuardar.textContent = textoOriginal;
         }
     });
 
@@ -320,6 +334,13 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             validarCombinacion();
             cambiarAModoEdicion();
+            if (Number(resultado.datos.productos_asignados) > 0) {
+                const productos = resultado.datos.nombres_productos;
+                const detalle = productos
+                    ? "Productos asociados: " + productos + ". No se puede modificar esta ubicación."
+                    : "Esta ubicación tiene productos asignados y no se puede modificar.";
+                bloquearEdicionAsignada(detalle);
+            }
         } catch (error) {
             console.error("Error al cargar la ubicación:", error);
             notificar("danger", "No se pudo cargar la ubicación.");

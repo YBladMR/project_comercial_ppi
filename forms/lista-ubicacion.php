@@ -13,9 +13,8 @@ include_once(__DIR__ . '/../config.php'); ?>
   <script src="<?php echo BASE_URL; ?>js/config.js"></script>
   <script src="<?php echo BASE_URL; ?>js/color-modes.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous">
-
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/lista-ubicacion.css?v=<?php echo filemtime(__DIR__ . '/../css/lista-ubicacion.css'); ?>">
-  </head>
+</head>
 <body>
   <?php include '../Barra_Lateral.php'; ?>
 
@@ -29,13 +28,18 @@ include_once(__DIR__ . '/../config.php'); ?>
               <i class="bi bi-search" aria-hidden="true"></i>
               <input id="table-filter" type="search" placeholder="Buscar ubicaciones..." aria-label="Buscar ubicaciones" autocomplete="off">
             </label>
+            <div class="lp-asignacion-filtros" role="group" aria-label="Filtrar ubicaciones por asignación">
+              <button type="button" data-asignacion="" class="activo" aria-pressed="true">Todas</button>
+              <button type="button" data-asignacion="asignada" aria-pressed="false">Asignadas</button>
+              <button type="button" data-asignacion="libre" aria-pressed="false">Sin asignar</button>
+            </div>
             <div class="lp-filtros">
               <button type="button" id="btnFiltros" class="lp-btn-filtros" aria-expanded="false" aria-controls="panelFiltros">
                 <i class="bi bi-funnel me-1" aria-hidden="true"></i> Filtros <i class="bi bi-chevron-down ms-1" aria-hidden="true"></i>
               </button>
               <div id="panelFiltros" class="lp-menu" hidden>
                 <div class="d-flex flex-column gap-2">
-                  <button type="button" id="limpiar-filtros" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-circle me-1" aria-hidden="true"></i> Limpiar búsqueda</button>
+                  <button type="button" id="limpiar-filtros" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-circle me-1" aria-hidden="true"></i> Limpiar filtros</button>
                   <button type="button" id="print-table" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer me-1" aria-hidden="true"></i> Imprimir lista</button>
                 </div>
               </div>
@@ -51,6 +55,7 @@ include_once(__DIR__ . '/../config.php'); ?>
                 <th data-orden="pasillo">Pasillo</th>
                 <th data-orden="estante">Estante</th>
                 <th data-orden="nivel">Nivel</th>
+                <th>Asignación</th>
                 <th class="lp-centro lp-col-acc">Acciones</th>
               </tr>
             </thead>
