@@ -8,8 +8,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tamPagina = document.getElementById('tam-pagina');
     const paginador = document.getElementById('paginador');
     const contador = document.getElementById('total-registros');
+    const modalUbicacionEl = document.getElementById('modalUbicacionInventario');
+    const formularioUbicacion = document.getElementById('formUbicacionInventario');
+    const selectUbicacion = document.getElementById('selectUbicacionInventario');
+    const botonGuardarUbicacion = document.getElementById('btnGuardarUbicacionInventario');
+    const nombreProductoUbicacion = document.getElementById('nombreProductoUbicacion');
+    const modalUbicacion = typeof coreui !== 'undefined' && coreui.Modal
+        ? coreui.Modal.getOrCreateInstance(modalUbicacionEl)
+        : null;
 
     let existencias = [];
+    let ubicaciones = [];
+    let ubicacionesCargadas = false;
+    let productoSeleccionado = null;
     let texto = '';
     let pagina = 1;
     let cantidadPorPagina = Number(tamPagina.value) || 10;
@@ -23,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function obtenerFiltradas() {
         const busqueda = texto.trim().toLocaleLowerCase('es');
         return existencias.filter((fila) =>
-            [fila.producto, fila.ubicacion, fila.id_producto]
+            [fila.producto, fila.categoria, fila.ubicacion, fila.id_producto, fila.id_inventario, fila.existencia]
                 .some((dato) => String(dato ?? '').toLocaleLowerCase('es').includes(busqueda))
         );
     }
@@ -35,18 +46,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         const visibles = filas.slice((pagina - 1) * cantidadPorPagina, pagina * cantidadPorPagina);
 
         cuerpo.innerHTML = visibles.map((fila) => `
-            <tr>
+            <tr data-id="${escapar(fila.id_producto)}">
                 <td>
                     <div class="li-producto">
                         <span class="li-icono"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
                         <span>
                             <strong class="d-block">${escapar(fila.producto)}</strong>
-                            <span class="li-secundario">ID: ${escapar(fila.id_producto)}</span>
+                            <span class="li-secundario">${escapar(fila.categoria)}</span>
                         </span>
                     </div>
                 </td>
                 <td>${escapar(fila.ubicacion || 'Sin ubicación')}</td>
                 <td class="li-numero">${Number(fila.existencia) || 0}</td>
+                <td class="li-accion">
+                    <button type="button" class="btn btn-sm btn-outline-primary btn-asignar-ubicacion"
+                            title="${fila.id_ubicacion ? 'Cambiar ubicación' : 'Asignar ubicación'}"
+                            aria-label="${fila.id_ubicacion ? 'Cambiar ubicación' : 'Asignar ubicación'} de ${escapar(fila.producto)}">
+                        <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                        <span class="d-none d-md-inline">${fila.id_ubicacion ? 'Cambiar' : 'Asignar'}</span>
+                    </button>
+                </td>
             </tr>
         `).join('');
 
@@ -97,23 +116,106 @@ document.addEventListener('DOMContentLoaded', async () => {
         dibujar();
     });
 
-    try {
-        const respuesta = await fetch('../dao/DAOInventario.php?opcion=consultar', {
+    async function cargarUbicaciones() {
+        if (ubicacionesCargadas) return;
+
+        const respuesta = await fetch('../dao/DAOInventario.php?opcion=consultarUbicaciones', {
             headers: { Accept: 'application/json' }
         });
         if (!respuesta.ok) throw new Error(`Error HTTP: ${respuesta.status}`);
 
         const resultado = await respuesta.json();
-        if (!Array.isArray(resultado)) throw new Error(resultado.mensaje || 'Respuesta no válida');
-        existencias = resultado;
-        dibujar();
-    } catch (error) {
-        console.error('Error al cargar existencias:', error);
-        tituloEstado.textContent = 'No se pudieron cargar las existencias';
-        detalleEstado.textContent = 'Recarga la página e intenta de nuevo.';
-        tabla.hidden = true;
-        estado.hidden = false;
-        contador.textContent = 'Total de productos: 0';
-        if (typeof notificar === 'function') notificar('danger', 'No se pudieron cargar las existencias.');
+        if (!Array.isArray(resultado)) throw new Error(resultado.mensaje || 'No se pudieron cargar las ubicaciones');
+        ubicaciones = resultado;
+        ubicacionesCargadas = true;
     }
+
+    cuerpo.addEventListener('click', async (evento) => {
+        const boton = evento.target.closest('.btn-asignar-ubicacion');
+        if (!boton) return;
+
+        const fila = boton.closest('tr[data-id]');
+        productoSeleccionado = existencias.find((item) => String(item.id_producto) === fila?.dataset.id);
+        if (!productoSeleccionado) return;
+
+        boton.disabled = true;
+        try {
+            await cargarUbicaciones();
+            if (ubicaciones.length === 0) throw new Error('Primero registra al menos una ubicación.');
+
+            selectUbicacion.innerHTML = '<option value="">Seleccione una ubicación</option>' + ubicaciones.map((ubicacion) =>
+                `<option value="${escapar(ubicacion.id_ubicacion)}">${escapar(ubicacion.nombre)}</option>`
+            ).join('');
+            selectUbicacion.value = String(productoSeleccionado.id_ubicacion ?? '');
+            nombreProductoUbicacion.textContent = productoSeleccionado.producto;
+            modalUbicacion?.show();
+        } catch (error) {
+            console.error('Error al cargar ubicaciones:', error);
+            productoSeleccionado = null;
+            notificar('danger', error.message || 'No se pudieron cargar las ubicaciones.');
+        } finally {
+            boton.disabled = false;
+        }
+    });
+
+    formularioUbicacion.addEventListener('submit', async (evento) => {
+        evento.preventDefault();
+        if (!productoSeleccionado) return;
+        if (!formularioUbicacion.checkValidity()) {
+            formularioUbicacion.reportValidity();
+            return;
+        }
+
+        const textoOriginal = botonGuardarUbicacion.innerHTML;
+        botonGuardarUbicacion.disabled = true;
+        botonGuardarUbicacion.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Guardando...';
+
+        try {
+            const datos = new FormData();
+            datos.append('opcion', 'asignarUbicacion');
+            datos.append('id_producto', productoSeleccionado.id_producto);
+            datos.append('id_ubicacion', selectUbicacion.value);
+
+            const respuesta = await fetch('../dao/DAOInventario.php', { method: 'POST', body: datos });
+            const resultado = await respuesta.json();
+            if (!respuesta.ok || !resultado.estado) {
+                throw new Error(resultado.mensaje || `Error HTTP: ${respuesta.status}`);
+            }
+
+            modalUbicacion?.hide();
+            productoSeleccionado = null;
+            notificar('success', resultado.mensaje || 'La ubicación se asignó correctamente.');
+            await cargarExistencias();
+        } catch (error) {
+            console.error('Error al asignar ubicación:', error);
+            notificar('danger', error.message || 'No se pudo asignar la ubicación.');
+        } finally {
+            botonGuardarUbicacion.disabled = false;
+            botonGuardarUbicacion.innerHTML = textoOriginal;
+        }
+    });
+
+    async function cargarExistencias() {
+        try {
+            const respuesta = await fetch('../dao/DAOInventario.php?opcion=consultar', {
+                headers: { Accept: 'application/json' }
+            });
+            if (!respuesta.ok) throw new Error(`Error HTTP: ${respuesta.status}`);
+
+            const resultado = await respuesta.json();
+            if (!Array.isArray(resultado)) throw new Error(resultado.mensaje || 'Respuesta no válida');
+            existencias = resultado;
+            dibujar();
+        } catch (error) {
+            console.error('Error al cargar existencias:', error);
+            tituloEstado.textContent = 'No se pudieron cargar las existencias';
+            detalleEstado.textContent = 'Recarga la página e intenta de nuevo.';
+            tabla.hidden = true;
+            estado.hidden = false;
+            contador.textContent = 'Total de productos: 0';
+            if (typeof notificar === 'function') notificar('danger', 'No se pudieron cargar las existencias.');
+        }
+    }
+
+    await cargarExistencias();
 });

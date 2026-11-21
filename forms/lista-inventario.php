@@ -62,6 +62,7 @@ include_once __DIR__ . '/../config.php';
     }
     .li-secundario { color: var(--cui-secondary-color); font-size: .8rem; }
     .li-numero { color: var(--li-azul); font-size: 1rem; font-weight: 700; text-align: center; }
+    .li-accion { white-space: nowrap; text-align: center; }
     .li-vacio { padding: 2.5rem 1rem; text-align: center; }
     .li-vacio i { display: block; margin-bottom: .5rem; color: var(--li-azul); font-size: 2.5rem; }
     .li-pie select { padding: .2rem .5rem; border: 1px solid var(--cui-border-color); border-radius: 2rem; background: var(--cui-body-bg); color: var(--cui-body-color); }
@@ -89,14 +90,14 @@ include_once __DIR__ . '/../config.php';
           <strong><i class="bi bi-list-ul me-2 text-primary" aria-hidden="true"></i>Productos en inventario</strong>
           <label class="li-buscar">
             <i class="bi bi-search" aria-hidden="true"></i>
-            <input id="buscar-inventario" type="search" placeholder="Buscar producto o ubicación..." autocomplete="off" aria-label="Buscar producto o ubicación">
+            <input id="buscar-inventario" type="search" placeholder="Buscar producto, categoría, ubicación o existencia..." autocomplete="off" aria-label="Buscar en el inventario">
           </label>
         </div>
 
         <div class="li-tabla-wrap" id="tabla-wrap" hidden>
           <table class="li-tabla">
             <thead>
-              <tr><th>Producto</th><th>Ubicación</th><th class="text-center">Existencia</th></tr>
+              <tr><th>Producto</th><th>Ubicación</th><th class="text-center">Existencia</th><th class="text-center">Acciones</th></tr>
             </thead>
             <tbody id="cuerpo-inventario"></tbody>
           </table>
@@ -117,6 +118,32 @@ include_once __DIR__ . '/../config.php';
           </div>
         </div>
       </section>
+
+      <div class="modal fade" id="modalUbicacionInventario" tabindex="-1" aria-labelledby="tituloModalUbicacionInventario" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <form id="formUbicacionInventario" novalidate>
+              <div class="modal-header">
+                <h2 class="modal-title fs-5" id="tituloModalUbicacionInventario">Asignar ubicación</h2>
+                <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Cerrar"></button>
+              </div>
+              <div class="modal-body">
+                <p class="mb-3">Producto: <strong id="nombreProductoUbicacion"></strong></p>
+                <label for="selectUbicacionInventario" class="form-label">Ubicación *</label>
+                <select id="selectUbicacionInventario" class="form-select" required>
+                  <option value="">Seleccione una ubicación</option>
+                </select>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancelar</button>
+                <button type="submit" id="btnGuardarUbicacionInventario" class="btn btn-primary">
+                  <i class="bi bi-geo-alt" aria-hidden="true"></i> Guardar ubicación
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
   <footer class="footer px-4"><div>Comercial X &copy; 2026.</div></footer>
