@@ -112,7 +112,7 @@ requerir_autenticacion();
         Inventario
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Existencias</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-inventario.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Existencias</a></li>
         <li class="nav-group">
           <a class="nav-link nav-group-toggle" href="#">
             <span class="nav-icon"><span class="nav-icon-bullet"></span></span>
