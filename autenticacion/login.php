@@ -3,13 +3,13 @@ require_once __DIR__ . '/../autenticacion/seguridad.php';
 
 $mensajeError = (string) ($_SESSION['mensaje_login'] ?? '');
 unset($_SESSION['mensaje_login']);
+$mensajeConfirmacion = '';
 $usuarioIngresado = '';
-$mensajeEsExito = isset($_GET['salida']) || isset($_GET['registro']);
 
 if (isset($_GET['salida'])) {
-    $mensajeError = 'La sesión se cerró correctamente.';
+    $mensajeConfirmacion = 'La sesión se cerró correctamente.';
 } elseif (isset($_GET['registro'])) {
-    $mensajeError = 'Las cuentas son creadas por un administrador.';
+    $mensajeConfirmacion = 'Las cuentas son creadas por un administrador.';
 }
 
 if (esta_autenticado()) {
@@ -142,6 +142,13 @@ $tokenCsrf = obtener_token_csrf();
     <link href="css/style.css" rel="stylesheet">
     <!-- We use those styles to show code examples, you should remove them in your application.-->
     <link href="css/examples.css" rel="stylesheet">
+    <style>
+      /* Evita que Edge muestre su propio control sobre el botón de la plantilla. */
+      #contrasena::-ms-reveal,
+      #contrasena::-ms-clear {
+        display: none;
+      }
+    </style>
     <script src="js/config.js"></script>
     <script src="js/color-modes.js"></script>
   </head>
@@ -163,16 +170,11 @@ $tokenCsrf = obtener_token_csrf();
           <div class="card p-4">
             <div class="card-body d-flex flex-column gap-4">
               <h2 class="h5 text-center">Inicia sesión en tu cuenta</h2>
-              <?php if ($mensajeError !== ''): ?>
-                <div class="alert <?php echo $mensajeEsExito ? 'alert-success' : 'alert-danger'; ?> text-start mb-0" role="alert">
-                  <?php echo htmlspecialchars($mensajeError, ENT_QUOTES, 'UTF-8'); ?>
-                </div>
-              <?php endif; ?>
-              <form class="row gap-3" action="<?php echo BASE_URL; ?>autenticacion/login.php" method="post" autocomplete="on">
+              <form class="row gap-3" action="<?php echo BASE_URL; ?>autenticacion/login.php" method="post" autocomplete="off">
                 <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars($tokenCsrf, ENT_QUOTES, 'UTF-8'); ?>">
                 <div>
                   <label class="form-label" for="usuario">Usuario</label>
-                  <input class="form-control" id="usuario" name="usuario" type="text" value="<?php echo htmlspecialchars($usuarioIngresado, ENT_QUOTES, 'UTF-8'); ?>" placeholder="Tu usuario" autocomplete="username" maxlength="50" required>
+                  <input class="form-control" id="usuario" name="usuario" type="text" value="<?php echo htmlspecialchars($usuarioIngresado, ENT_QUOTES, 'UTF-8'); ?>" placeholder="Tu usuario" autocomplete="off" maxlength="50" required>
                 </div>
                 <div>
                   <div class="d-flex justify-content-between">
@@ -182,7 +184,7 @@ $tokenCsrf = obtener_token_csrf();
                   <div class="input-group">
                     <input class="form-control" id="contrasena" name="contrasena" type="password" placeholder="Tu contraseña" autocomplete="current-password" required>
                     <span class="input-group-text">
-                      <button class="bg-transparent border-0 p-0 link-secondary" type="button" data-coreui-toggle="tooltip" aria-label="Mostrar contraseña" data-coreui-original-title="Mostrar contraseña">
+                      <button id="alternarContrasena" class="bg-transparent border-0 p-0 link-secondary" type="button" aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar contraseña">
                         <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                           <path class="ci-primary" fill="var(--ci-primary-color, currentcolor)" d="M256 144.927a103.309 103.309 0 1 0 103.309 103.309A103.426 103.426 0 0 0 256 144.927m0 174.618a71.309 71.309 0 1 1 71.309-71.309A71.39 71.39 0 0 1 256 319.545"></path>
                           <path class="ci-primary" fill="var(--ci-primary-color, currentcolor)" d="m397.222 131.1-.218-.223c-77.75-77.749-204.258-77.749-282.008 0L16 233.79v28.893l98.778 102.689.218.222a199.41 199.41 0 0 0 282.008 0l99-102.911V233.79ZM464 249.79l-89.732 93.285a167.41 167.41 0 0 1-236.536 0L48 249.79v-3.107l89.729-93.283c65.247-65.13 171.3-65.13 236.542 0L464 246.683Z"></path>
@@ -195,6 +197,15 @@ $tokenCsrf = obtener_token_csrf();
                 <p class="small text-body-secondary mb-0">La sesión se cerrará después de 30 minutos de inactividad.</p>
                 <div>
                   <button class="btn btn-primary w-100" type="submit">Ingresar</button>
+                  <?php if ($mensajeError !== ''): ?>
+                    <p class="small text-danger-emphasis text-center mt-2 mb-0" role="alert">
+                      <?php echo htmlspecialchars($mensajeError, ENT_QUOTES, 'UTF-8'); ?>
+                    </p>
+                  <?php elseif ($mensajeConfirmacion !== ''): ?>
+                    <p class="small text-success-emphasis text-center mt-2 mb-0" role="status">
+                      <?php echo htmlspecialchars($mensajeConfirmacion, ENT_QUOTES, 'UTF-8'); ?>
+                    </p>
+                  <?php endif; ?>
                 </div>
               </form>
               <div class="position-relative d-none">
@@ -217,7 +228,7 @@ $tokenCsrf = obtener_token_csrf();
             </div>
           </div>
           <div class="text-center text-body-secondary">
-            Las cuentas son creadas por un administrador.
+            Las cuentas son creadas por tu administrador.
           </div>
         </div>
       </div>
@@ -237,6 +248,21 @@ $tokenCsrf = obtener_token_csrf();
     <script>
       const tooltipTriggerList = document.querySelectorAll('[data-coreui-toggle="tooltip"]');
       const tooltipList = [...tooltipTriggerList].map((tooltipTriggerEl) => new coreui.Tooltip(tooltipTriggerEl));
+    </script>
+    <script>
+      const campoContrasena = document.getElementById("contrasena");
+      const botonAlternarContrasena = document.getElementById("alternarContrasena");
+
+      if (campoContrasena && botonAlternarContrasena) {
+        botonAlternarContrasena.addEventListener("click", () => {
+          const mostrar = campoContrasena.type === "password";
+          campoContrasena.type = mostrar ? "text" : "password";
+          const etiqueta = mostrar ? "Ocultar contraseña" : "Mostrar contraseña";
+          botonAlternarContrasena.setAttribute("aria-label", etiqueta);
+          botonAlternarContrasena.setAttribute("aria-pressed", String(mostrar));
+          botonAlternarContrasena.title = etiqueta;
+        });
+      }
     </script>
   </body>
 </html>
