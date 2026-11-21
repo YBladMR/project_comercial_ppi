@@ -232,8 +232,6 @@ include_once(__DIR__ . '/../config.php');
                             <tr>
                                 <th data-orden="nombre_razon_social">Proveedor</th>
                                 <th data-orden="tipo_persona">Tipo</th>
-                                <th>Identificación</th>
-                                <th>Contacto</th>
                                 <th data-orden="fecha_registro">Fecha de registro</th>
                                 <th data-orden="estado" class="lp-centro">Estado</th>
                                 <th class="lp-centro lp-col-acc">Acciones</th>
@@ -264,6 +262,24 @@ include_once(__DIR__ . '/../config.php');
                     </div>
                 </div>
             </section>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDetalleProveedor" tabindex="-1" aria-labelledby="tituloDetalleProveedor" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title" id="tituloDetalleProveedor">Detalles del proveedor</h5>
+                        <small class="text-body-secondary">Información registrada</small>
+                    </div>
+                    <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="contenidoDetalleProveedor"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
         </div>
     </div>
 
