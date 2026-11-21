@@ -70,6 +70,7 @@ include_once(__DIR__ . '/../config.php');
 
         <div class="card-body">
           <form id="formUbicacion" autocomplete="off" novalidate>
+            <div id="avisoUbicacionAsignada" class="alert alert-warning" role="alert" hidden></div>
             <div class="row g-3">
               <div class="col-12 col-md-6">
                 <label for="bodega" class="form-label">Bodega *</label>

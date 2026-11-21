@@ -82,7 +82,57 @@ if ($opcion == "modificar") {
     }
 
     try {
+        $conexion->begin_transaction();
+
+        $stmtBloquear = $conexion->prepare(
+            "SELECT id_ubicacion FROM ubicacion WHERE id_ubicacion = ? FOR UPDATE"
+        );
+        $stmtBloquear->bind_param("i", $idUbicacion);
+        $stmtBloquear->execute();
+        $ubicacionExiste = $stmtBloquear->get_result()->num_rows > 0;
+        $stmtBloquear->close();
+
+        if (!$ubicacionExiste) {
+            $conexion->rollback();
+            http_response_code(404);
+            echo json_encode([
+                "estado" => false,
+                "mensaje" => "La ubicación indicada ya no existe."
+            ], JSON_UNESCAPED_UNICODE);
+            $conexion->close();
+            exit;
+        }
+
+        $stmtAsignados = $conexion->prepare(
+            "SELECT COALESCE(p.nombre, CONCAT('producto #', i.id_producto)) AS nombre
+             FROM inventario AS i
+             LEFT JOIN producto AS p ON p.id_producto = i.id_producto
+             WHERE i.id_ubicacion = ?
+             ORDER BY p.nombre"
+        );
+        $stmtAsignados->bind_param("i", $idUbicacion);
+        $stmtAsignados->execute();
+        $resultadoAsignados = $stmtAsignados->get_result();
+        $productosAsignados = [];
+        while ($producto = $resultadoAsignados->fetch_assoc()) {
+            $productosAsignados[] = $producto["nombre"];
+        }
+        $stmtAsignados->close();
+
+        if (count($productosAsignados) > 0) {
+            $conexion->rollback();
+            http_response_code(409);
+            echo json_encode([
+                "estado" => false,
+                "codigo" => "ubicacion_asignada",
+                "mensaje" => "No se puede modificar esta ubicación porque está asignada a: " . implode(", ", $productosAsignados) . "."
+            ], JSON_UNESCAPED_UNICODE);
+            $conexion->close();
+            exit;
+        }
+
         if (ubicacionCombinacionExiste($conexion, $bodega, $pasillo, $estante, $nivel, $idUbicacion)) {
+            $conexion->rollback();
             echo json_encode([
                 "estado" => false,
                 "codigo" => "combinacion_duplicada",
@@ -97,11 +147,13 @@ if ($opcion == "modificar") {
         $stmt->bind_param("ssssi", $bodega, $pasillo, $estante, $nivel, $idUbicacion);
         $stmt->execute();
         $stmt->close();
+        $conexion->commit();
         echo json_encode([
             "estado" => true,
             "mensaje" => "Ubicación modificada correctamente."
         ], JSON_UNESCAPED_UNICODE);
     } catch (Throwable $e) {
+        $conexion->rollback();
         $duplicada = $e instanceof mysqli_sql_exception && (int) $e->getCode() === 1062;
         echo json_encode([
             "estado" => false,
@@ -218,7 +270,14 @@ if ($opcion == "consultar") {
     require_once "../conexion.php";
 
     try {
-        $sql = "SELECT id_ubicacion, bodega, pasillo, estante, nivel FROM ubicacion ORDER BY bodega";
+        $sql = "SELECT u.id_ubicacion, u.bodega, u.pasillo, u.estante, u.nivel,
+                       COUNT(DISTINCT i.id_producto) AS productos_asignados,
+                       GROUP_CONCAT(DISTINCT COALESCE(p.nombre, CONCAT('Producto #', i.id_producto)) ORDER BY COALESCE(p.nombre, CONCAT('Producto #', i.id_producto)) SEPARATOR ', ') AS nombres_productos
+                FROM ubicacion AS u
+                LEFT JOIN inventario AS i ON i.id_ubicacion = u.id_ubicacion
+                LEFT JOIN producto AS p ON p.id_producto = i.id_producto
+                GROUP BY u.id_ubicacion, u.bodega, u.pasillo, u.estante, u.nivel
+                ORDER BY u.bodega, u.pasillo, u.estante, u.nivel";
 
         $resultado = $conexion->query($sql);
 
@@ -235,7 +294,9 @@ if ($opcion == "consultar") {
                 'bodega' => $fila['bodega'],
                 'pasillo' => $fila['pasillo'],
                 'estante' => $fila['estante'],
-                'nivel' => $fila['nivel']
+                'nivel' => $fila['nivel'],
+                'productos_asignados' => (int) $fila['productos_asignados'],
+                'nombres_productos' => $fila['nombres_productos'] ?? ''
             ];
         }
 
@@ -258,7 +319,14 @@ if ($opcion == "consultar") {
 if ($opcion == "consultarIndividual") {
     require_once "../conexion.php";
 
-    $sql = "SELECT id_ubicacion, bodega, pasillo, estante, nivel FROM ubicacion WHERE id_ubicacion=?";
+    $sql = "SELECT u.id_ubicacion, u.bodega, u.pasillo, u.estante, u.nivel,
+                   COUNT(DISTINCT i.id_producto) AS productos_asignados,
+                   GROUP_CONCAT(DISTINCT COALESCE(p.nombre, CONCAT('Producto #', i.id_producto)) ORDER BY COALESCE(p.nombre, CONCAT('Producto #', i.id_producto)) SEPARATOR ', ') AS nombres_productos
+            FROM ubicacion AS u
+            LEFT JOIN inventario AS i ON i.id_ubicacion = u.id_ubicacion
+            LEFT JOIN producto AS p ON p.id_producto = i.id_producto
+            WHERE u.id_ubicacion = ?
+            GROUP BY u.id_ubicacion, u.bodega, u.pasillo, u.estante, u.nivel";
     $stmt = $conexion->prepare($sql);
     $stmt->bind_param("i", $id);
 
@@ -275,7 +343,9 @@ if ($opcion == "consultarIndividual") {
                 "bodega" => $datos["bodega"],
                 "pasillo" => $datos["pasillo"],
                 "estante" => $datos["estante"],
-                "nivel" => $datos["nivel"]
+                "nivel" => $datos["nivel"],
+                "productos_asignados" => (int) $datos["productos_asignados"],
+                "nombres_productos" => $datos["nombres_productos"] ?? ""
             ]
         ]);
     } else {

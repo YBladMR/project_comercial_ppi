@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const tablaWrap = document.getElementById("tabla-wrap");
     const encabezados = document.querySelectorAll("#tabla-ubicaciones th[data-orden]");
     const buscador = document.getElementById("table-filter");
+    const filtrosAsignacion = document.querySelectorAll("[data-asignacion]");
     const btnFiltros = document.getElementById("btnFiltros");
     const panelFiltros = document.getElementById("panelFiltros");
     const btnLimpiar = document.getElementById("limpiar-filtros");
@@ -20,6 +21,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let cargando = true;
     let errorCarga = false;
     let texto = "";
+    let asignacion = "";
     let orden = { campo: "bodega", dir: 1 };
     let pagina = 1;
     let tam = Number(selTam.value) || 10;
@@ -33,8 +35,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     function filtrar() {
         const consulta = texto.trim().toLocaleLowerCase("es");
         const lista = ubicaciones.filter((ubicacion) => {
+            const tieneAsignacion = Number(ubicacion.productos_asignados) > 0;
+            if (asignacion === "asignada" && !tieneAsignacion) return false;
+            if (asignacion === "libre" && tieneAsignacion) return false;
             if (!consulta) return true;
-            return [ubicacion.bodega, ubicacion.pasillo, ubicacion.estante, ubicacion.nivel]
+            return [ubicacion.bodega, ubicacion.pasillo, ubicacion.estante, ubicacion.nivel,
+                ubicacion.nombres_productos, tieneAsignacion ? "asignada" : "sin asignar"]
                 .some((valor) => String(valor ?? "").toLocaleLowerCase("es").includes(consulta));
         });
 
@@ -46,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function filaHTML(ubicacion) {
         return `
-        <tr data-id="${esc(ubicacion.id_ubicacion)}">
+        <tr data-id="${esc(ubicacion.id_ubicacion)}" data-asignada="${Number(ubicacion.productos_asignados) > 0 ? "1" : "0"}">
             <td>
                 <div class="lp-prod">
                     <span class="lp-prod-ico"><i class="bi bi-building" aria-hidden="true"></i></span>
@@ -59,6 +65,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             <td>${esc(ubicacion.pasillo)}</td>
             <td>${esc(ubicacion.estante)}</td>
             <td>${esc(ubicacion.nivel)}</td>
+            <td>
+                <span class="lp-estado-asignacion ${Number(ubicacion.productos_asignados) > 0 ? "asignada" : "libre"}">
+                    <i class="bi ${Number(ubicacion.productos_asignados) > 0 ? "bi-box-seam" : "bi-inbox"}" aria-hidden="true"></i>
+                    ${Number(ubicacion.productos_asignados) > 0 ? "Asignada" : "Sin asignar"}
+                </span>
+            </td>
             <td class="lp-centro lp-col-acc">
                 <span class="lp-acc">
                     <a class="lp-ib" href="ubicacion.php?id_ubicacion=${encodeURIComponent(ubicacion.id_ubicacion)}" title="Modificar ubicación" aria-label="Modificar ubicación ${esc(ubicacion.bodega)}">
@@ -89,6 +101,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             titulo.textContent = "Sin resultados";
             detalle.textContent = "Ninguna ubicación coincide con la búsqueda.";
             accionLimpiar.hidden = false;
+            if (asignacion !== "") detalle.textContent = "Ninguna ubicación coincide con los filtros actuales.";
         } else {
             titulo.textContent = "No hay ubicaciones para mostrar";
             detalle.textContent = "Aún no se han registrado ubicaciones. Puedes agregar una nueva ubicación.";
@@ -133,10 +146,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         const visibles = lista.slice((pagina - 1) * tam, pagina * tam);
 
         cuerpo.innerHTML = visibles.map(filaHTML).join("");
+        cuerpo.querySelectorAll('tr[data-asignada="1"] .lp-acc a.lp-ib').forEach((enlace) => {
+            enlace.removeAttribute("href");
+            enlace.setAttribute("aria-disabled", "true");
+            enlace.setAttribute("tabindex", "-1");
+            enlace.setAttribute("aria-label", "Ubicación asignada: edición no disponible");
+            enlace.title = "No se puede modificar una ubicación asignada";
+        });
         const sinFilas = visibles.length === 0;
         tablaWrap.hidden = sinFilas;
         vacio.hidden = !sinFilas;
-        if (sinFilas) dibujarVacio(ubicaciones.length > 0 && texto.trim() !== "");
+        if (sinFilas) dibujarVacio(ubicaciones.length > 0 && (texto.trim() !== "" || asignacion !== ""));
 
         contador.textContent = `Total de ubicaciones: ${lista.length}`;
         dibujarEncabezados();
@@ -145,7 +165,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function limpiarFiltros() {
         texto = "";
+        asignacion = "";
         buscador.value = "";
+        filtrosAsignacion.forEach((boton) => {
+            const activo = boton.dataset.asignacion === "";
+            boton.classList.toggle("activo", activo);
+            boton.setAttribute("aria-pressed", String(activo));
+        });
         pagina = 1;
         dibujar();
     }
@@ -160,6 +186,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         pagina = 1;
         dibujar();
     });
+    filtrosAsignacion.forEach((boton) => boton.addEventListener("click", () => {
+        asignacion = boton.dataset.asignacion;
+        filtrosAsignacion.forEach((otro) => {
+            const activo = otro === boton;
+            otro.classList.toggle("activo", activo);
+            otro.setAttribute("aria-pressed", String(activo));
+        });
+        pagina = 1;
+        dibujar();
+    }));
     selTam.addEventListener("change", () => {
         tam = Number(selTam.value) || 10;
         pagina = 1;
