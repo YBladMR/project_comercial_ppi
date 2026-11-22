@@ -1,238 +1,3 @@
-// const formulario = document.getElementById("formCategoria");
-// const categoria = document.getElementById("nombre");
-// const descripcion = document.getElementById("descripcion");
-// const margenGanancia = document.getElementById("margen_ganancia");
-// const estado = document.getElementById("estado");
-// const btnGuardar = document.getElementById("btnGuardar");
-// const btnCancelar = document.getElementById("btnCancelar");
-
-// btnCancelar.addEventListener("click", function(){
-//         window.location.href = "categoria.php";
-//     });
-
-// ///////////////////LIMPIAR TODOS LOS CAMPOS///////////
-// function limpiarCampos() {
-//     campos.forEach(function (campo) {
-//         campo.value = "";
-//         campo.classList.remove("is-invalid");
-//         campo.classList.remove("is-valid");
-//     });
-//     estado.value = "activo";
-// }
-
-
-// function validarCampo(campo) {
-//     const vacio = campo.value.trim() === "";
-//     campo.classList.toggle("is-invalid", vacio);
-//     campo.classList.toggle("is-valid", !vacio);
-
-//     return !vacio;
-// }
-// const campos = [categoria, descripcion, margenGanancia];
-
-// if (formulario) {
-
-//     ////////////////////VALIDACION DE CAMPOS VACIOS
-//     campos.forEach(function (campo) {
-//         campo.addEventListener("blur", function () {
-//             validarCampo(campo);
-//         });
-//     });
-//     ////////////////////PASAR TODO A MAYUSCULAS
-//     const campos1 = [categoria, descripcion];
-
-//     campos1.forEach(function (campo) {
-//         campo.addEventListener("input", function () {
-//             campo.value = campo.value.toUpperCase();
-//             validarCampo(campo);
-//         });
-//     });
-
-
-//     btnGuardar.addEventListener("click", async function () {
-
-//         // 1. Capturar el elemento del input del margen de ganancia (asegúrate de que el id en tu HTML sea 'margen_ganancia')
-//         const valorMargen = parseFloat(margenGanancia.value);
-
-//         // 2. Validar campos de texto generales (usando && en lugar de coma)
-//         const categoriaValido = validarCampo(categoria);
-
-//         // 3. Validar el margen de ganancia específicamente
-//         let margenValido = true;
-//         let mensajeErrorMargen = "";
-
-//         if (isNaN(valorMargen) || margenGanancia.value.trim() === "") {
-//             margenValido = false;
-//             mensajeErrorMargen = "El margen de ganancia es obligatorio y debe ser un número.";
-//         } else if (valorMargen <= 0) {
-//             margenValido = false;
-//             mensajeErrorMargen = "El margen de ganancia no puede ser negativo ni cero";
-//         } else if (valorMargen > 100) { 
-//             margenValido = false;
-//             mensajeErrorMargen = "El margen de ganancia no puede superar el 100%.";
-//         }
-
-//         if (!margenValido) {
-//             notificar("danger", mensajeErrorMargen);
-//             margenGanancia.focus();
-//             return;
-//         }
-
-//         if (btnGuardar.textContent.trim() == "Guardar") {
-
-//             if (categoriaValido && margenValido) {
-//                 try {
-//                     const datos = new FormData(formulario);
-//                     datos.append("opcion", "guardar");
-                    
-//                     btnGuardar.textContent = "Procesando...";
-//                     btnGuardar.disabled = true;
-
-//                     // Enviar datos 
-//                     const respuesta = await fetch("../dao/DAOcategoria.php", {
-//                         method: "POST",
-//                         body: datos
-//                     });
-
-//                     // Verificar respuesta HTTP
-//                     if (!respuesta.ok) {
-//                         throw new Error("Error HTTP: " + respuesta.status);
-//                     }
-
-//                     // Esperar a que DAO termine
-//                     const resultado = await respuesta.json();
-//                     if (resultado.estado) {
-//                         // todo salio bien
-//                         notificar("success", resultado.mensaje);
-
-//                         limpiarCampos();
-
-//                     } else {
-//                         notificar("danger", resultado.mensaje);
-//                     }
-//                 } catch (error) {
-//                     console.error("Error en la petición:", error);
-//                 } finally {
-//                     btnGuardar.disabled = false;
-//                     btnGuardar.textContent = "Guardar";
-//                 }
-//             }
-//         }
-
-//         //////////////--------MODIFICAR------------------------///////////////////////////
-//         if (btnGuardar.textContent.trim() == "Modificar") {
-
-//             if (categoriaValido && margenValido) {
-//                 try {
-//                     const datos = new FormData(formulario);
-//                     datos.append("opcion", "modificar");
-//                     datos.append("id_categoria", btnGuardar.dataset.id_categoria);
-
-//                     btnGuardar.disabled = true;
-//                     btnGuardar.textContent = "Procesando...";
-
-//                     // Enviar datos 
-//                     // await hace que JavaScript ESPERE
-//                     const respuesta = await fetch("../dao/DAOcategoria.php", {
-//                         method: "POST",
-//                         body: datos
-//                     });
-
-//                     // Verificar respuesta HTTP
-//                     if (!respuesta.ok) {
-//                         throw new Error("Error HTTP: " + respuesta.status);
-//                     }
-
-//                     // Esperar a que DAO termine
-//                     const resultado = await respuesta.json();
-//                     if (resultado.estado) {
-//                         //todo salio bien
-//                         Swal.fire({
-//                             position: "top-end",
-//                             icon: "success",
-//                             title: "Poseidón",
-//                             text: resultado.mensaje,
-//                             showConfirmButton: false,
-//                             timer: 1500
-//                         }).then(() => {//cuando desaparece el mensaje se recarga la pagina
-//                             window.location.href = "lista-categoria.php";
-//                         });
-
-//                     } else {
-//                         Swal.fire({
-//                             position: "top-end",
-//                             icon: "danger",
-//                             title: "Poseidón",
-//                             text: resultado.mensaje,
-//                             showConfirmButton: false,
-//                             timer: 1500
-//                         });
-//                     }
-//                 } catch (error) {
-
-//                 } finally {
-//                     btnGuardar.disabled = false;
-//                     btnGuardar.textContent = "Guardar";
-//                 }
-
-//             }
-//         }
-//     });
-// }
-
-// //////////PROCESA AL TERMINAR DE CARGAR LA PAGINA
-// document.addEventListener("DOMContentLoaded", async () => {
-//     // Obtener el ID de la URL
-//     const parametros = new URLSearchParams(window.location.search);
-//     const id = parametros.get("id_categoria");
-
-//     if (id) {//SI EXISTE EL ID, SE HACE LA BUSQUEDA
-//         try {
-//             const datos = new FormData();
-//             datos.append("opcion", "consultarIndividual");
-//             datos.append("id_categoria", id);
-
-//             Swal.fire({
-//                 title: "Consultando...",
-//                 text: "Espere",
-//                 allowOutsideClick: false,
-//                 allowEscapeKey: false,
-//                 didOpen: () => Swal.showLoading()
-//             });
-
-//             const respuesta = await fetch("../dao/DAOcategoria.php", {
-//                 method: "POST",
-//                 body: datos
-//             });
-
-//             if (!respuesta.ok) {
-//                 console.error(respuesta.status);
-//                 throw new Error("Error HTTP: " + respuesta.status);
-//             }
-
-//             const resultado = await respuesta.json();
-
-
-//             // Cerrar el mensaje de espera
-//             Swal.close();
-
-//             if (resultado.estado) {
-//                 categoria.value = resultado.datos.nombre;
-//                 descripcion.value = resultado.datos.descripcion;
-//                 margenGanancia.value = resultado.datos.margen_ganancia;
-//                 estado.value = resultado.datos.estado;
-
-//                 btnGuardar.textContent = "Modificar";
-//                 btnGuardar.dataset.id_categoria = resultado.datos.id_categoria;
-//             }
-
-//         } catch (error) {
-//             Swal.close();
-//         }
-//     }
-
-// });
-
 /* ============================================================
  * JScategoria.js
  * Formulario de categoría: guardar y modificar.
@@ -245,8 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const nombre = document.getElementById("nombre");
     const descripcion = document.getElementById("descripcion");
-    const margenGanancia = document.getElementById("margen_ganancia");
-    const estado = document.getElementById("estado");
+    const categoriaPadre = document.getElementById("id_padre");
     const btnGuardar = document.getElementById("btnGuardar");
     const btnCancelar = document.getElementById("btnCancelar");
     const textoGuardar = document.getElementById("textoGuardar");
@@ -266,29 +30,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function validarNombre() {
-        return marcar(nombre, nombre.value.trim() !== "");
+        const valor = nombre.value.trim();
+        const soloLetrasYEspacios = /^[\p{L} ]+$/u.test(valor);
+        return marcar(nombre, valor !== "" && valor.length <= 80 && soloLetrasYEspacios);
     }
 
-    function validarMargen() {
-        const valor = parseFloat(margenGanancia.value);
-        let mensaje = "";
+    async function cargarCategoriasPadre(idActual = null) {
+        const datos = new FormData();
+        datos.append("opcion", "consultarPadres");
 
-        if (margenGanancia.value.trim() === "" || isNaN(valor)) {
-            mensaje = "El margen de ganancia es obligatorio y debe ser un número.";
-        } else if (valor <= 0) {
-            mensaje = "El margen de ganancia debe ser mayor que cero.";
-        } else if (valor > 100) {
-            mensaje = "El margen de ganancia no puede superar el 100%.";
-        }
+        const respuesta = await fetch(URL_DAO, { method: "POST", body: datos });
+        if (!respuesta.ok) throw new Error("Error HTTP: " + respuesta.status);
 
-        marcar(margenGanancia, mensaje === "");
-        return mensaje;   // "" si es válido
+        const resultado = await respuesta.json();
+        if (!Array.isArray(resultado)) throw new Error("Respuesta no válida al cargar categorías principales");
+
+        resultado.forEach((categoria) => {
+            if (String(categoria.id_categoria) === String(idActual)) return;
+            categoriaPadre.add(new Option(categoria.nombre, String(categoria.id_categoria)));
+        });
     }
 
     function limpiarCampos() {
         formulario.reset();
-        [nombre, descripcion, margenGanancia].forEach((c) => c.classList.remove("is-invalid", "is-valid"));
-        estado.value = "activo";
+        [nombre, descripcion].forEach((c) => c.classList.remove("is-invalid", "is-valid"));
     }
 
     function modoEdicion(activo) {
@@ -299,29 +64,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     /* ---------------------- EVENTOS ---------------------- */
 
     // Nombre y descripción en mayúsculas
-    [nombre, descripcion].forEach((campo) => {
-        campo.addEventListener("input", () => {
-            campo.value = campo.value.toUpperCase();
-            if (campo === nombre) validarNombre();
-        });
-    });
+    // [nombre, descripcion].forEach((campo) => {
+    //     campo.addEventListener("input", () => {
+    //         campo.value = campo.value.toUpperCase();
+    //         if (campo === nombre) validarNombre();
+    //     });
+    // });
     nombre.addEventListener("blur", validarNombre);
-    margenGanancia.addEventListener("blur", validarMargen);
 
     btnCancelar.addEventListener("click", () => { window.location.href = URL_LISTA; });
 
     btnGuardar.addEventListener("click", async () => {
         const nombreValido = validarNombre();
-        const errorMargen = validarMargen();
 
         if (!nombreValido) {
-            notificar("danger", "El nombre de la categoría es obligatorio.");
+            const valor = nombre.value.trim();
+            let mensaje = "El nombre solo puede contener letras y espacios.";
+            if (valor === "") {
+                mensaje = "El nombre de la categoría es obligatorio.";
+            } else if (valor.length > 80) {
+                mensaje = "El nombre de la categoría no puede superar 80 caracteres.";
+            }
+            notificar("danger", mensaje);
             nombre.focus();
-            return;
-        }
-        if (errorMargen) {
-            notificar("danger", errorMargen);
-            margenGanancia.focus();
             return;
         }
 
@@ -368,6 +133,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const parametros = new URLSearchParams(window.location.search);
     const id = parametros.get("id") || parametros.get("id_categoria");
 
+    try {
+        await cargarCategoriasPadre(id);
+    } catch (error) {
+        console.error("Error al cargar categorías principales:", error);
+        notificar("danger", "No se pudieron cargar las categorías principales");
+    }
+
     if (id) {
         try {
             const datos = new FormData();
@@ -383,13 +155,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (resultado.estado) {
                 nombre.value = resultado.datos.nombre ?? "";
                 descripcion.value = resultado.datos.descripcion ?? "";
-                margenGanancia.value = resultado.datos.margen_ganancia ?? "";
-                estado.value = String(resultado.datos.estado ?? "activo").toLowerCase();
+                categoriaPadre.value = resultado.datos.id_padre ?? "";
 
                 idEdicion = resultado.datos.id_categoria;
                 modoEdicion(true);
             } else {
-                notificar("danger", "La categoría no existe");
+                notificar("danger", resultado.mensaje || "La categoría no existe");
             }
         } catch (error) {
             console.error("Error al consultar la categoría:", error);

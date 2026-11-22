@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (estado && c.estado !== estado) return false;
             if (soloVacias && cantidad(c) > 0) return false;
             if (!q) return true;
-            return [c.nombre, c.descripcion, c.estado]
+            return [c.nombre, c.nombre_padre, c.descripcion, c.estado]
                 .some((v) => String(v ?? "").toLowerCase().includes(q));
         });
 
@@ -102,6 +102,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     function filaHTML(c) {
         const activo = c.estado === "activo";
         const total = cantidad(c);
+        const padre = c.id_padre == null
+            ? null
+            : categorias.find((categoria) => String(categoria.id_categoria) === String(c.id_padre));
+        const puedeReactivar = activo || c.id_padre == null || (padre && padre.estado === "activo");
 
         return `
         <tr class="${activo ? "" : "lp-baja"}" data-id="${esc(c.id_categoria)}">
@@ -110,10 +114,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <span class="lp-prod-ico"><i class="bi bi-tag" aria-hidden="true"></i></span>
                     <span>
                         <div class="lp-prod-nom">${esc(c.nombre)}</div>
-                        <div class="lp-prod-sub">ID: ${esc(c.id_categoria)}</div>
                     </span>
                 </div>
             </td>
+            <td class="lp-prod-sub">${c.nombre_padre ? esc(c.nombre_padre) : '<span class="lp-prod-sub"></span>'}</td>
             <td class="lp-desc">${c.descripcion ? esc(c.descripcion) : '<span class="lp-prod-sub">Sin descripción</span>'}</td>
             <td class="lp-centro"><span class="lp-cat ${total ? "" : "cero"}">${total}</span></td>
             <td class="lp-centro">
@@ -121,12 +125,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             </td>
             <td class="lp-centro lp-col-acc">
                 <span class="lp-acc">
-                    <button type="button" class="lp-ib btn-editar" title="Editar" aria-label="Editar">
+                    <button type="button" class="lp-ib btn-editar" title="${activo ? "Editar" : "No se pueden editar categorías inactivas"}" aria-label="${activo ? "Editar" : "No se pueden editar categorías inactivas"}" ${activo ? "" : "disabled"}>
                         <i class="bi bi-pencil" aria-hidden="true"></i>
                     </button>
                     <button type="button" class="lp-ib btn-estado ${activo ? "baja" : "alta"}"
-                            title="${activo ? "Dar de baja" : "Reactivar"}" aria-label="${activo ? "Dar de baja" : "Reactivar"}">
+                            title="${activo ? "Dar de baja" : puedeReactivar ? "Reactivar" : "Activa primero la categoría padre"}" aria-label="${activo ? "Dar de baja" : puedeReactivar ? "Reactivar" : "Activa primero la categoría padre"}" ${puedeReactivar ? "" : "disabled"}>
                         <i class="bi ${activo ? "bi-slash-circle" : "bi-arrow-counterclockwise"}" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="lp-ib btn-eliminar eliminar" title="Eliminar" aria-label="Eliminar">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
                     </button>
                 </span>
             </td>
@@ -281,19 +288,59 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!categoria) return;
 
         if (e.target.closest(".btn-editar")) {
+            if (categoria.estado !== "activo") return;
             location.href = "categoria.php?id=" + categoria.id_categoria;
+            return;
         }
         if (e.target.closest(".btn-estado")) {
             cambiarEstado(categoria);
+            return;
+        }
+        if (e.target.closest(".btn-eliminar")) {
+            eliminarCategoria(categoria);
         }
     });
+
+    async function eliminarCategoria(categoria) {
+        const confirmado = await confirmarAccion(
+            `¿Confirma eliminar permanentemente la categoría "${categoria.nombre}"?`,
+            "Sí, eliminar",
+            "danger"
+        );
+        if (!confirmado) return;
+
+        try {
+            const datos = new FormData();
+            datos.append("opcion", "eliminar");
+            datos.append("id_categoria", categoria.id_categoria);
+
+            const respuesta = await fetch("../dao/DAOcategoria.php", {
+                method: "POST",
+                body: datos
+            });
+            if (!respuesta.ok) throw new Error("Error HTTP: " + respuesta.status);
+
+            const resultado = await respuesta.json();
+            if (resultado.estado) {
+                notificar("success", resultado.mensaje);
+                await cargarDatos();
+            } else {
+                notificar("danger", resultado.mensaje);
+            }
+        } catch (error) {
+            console.error("Error al eliminar la categoría:", error);
+            notificar("danger", "No se pudo eliminar la categoría");
+        }
+    }
 
     /* ---------------------- DAR DE BAJA / REACTIVAR ---------------------- */
 
     async function cambiarEstado(categoria) {
         const nuevoEstado = categoria.estado === "activo" ? "inactivo" : "activo";
+        const esPrincipal = categoria.id_padre === null;
+        const tieneHijas = esPrincipal && categorias.some((c) => Number(c.id_padre) === Number(categoria.id_categoria));
         const mensaje = nuevoEstado === "inactivo"
-            ? `¿Confirma dar de baja la categoría "${categoria.nombre}"?`
+            ? `¿Confirma dar de baja la categoría "${categoria.nombre}"?${tieneHijas ? " También se darán de baja sus subcategorías." : ""}`
             : `¿Confirma reactivar la categoría "${categoria.nombre}"?`;
 
         const confirmado = await confirmarAccion(

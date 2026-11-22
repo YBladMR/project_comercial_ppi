@@ -1,20 +1,23 @@
-<?php $titulo_pagina = "Lista de Productos"; ?>
+<?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
+requerir_permiso('productos.consultar'); $titulo_pagina = "Lista de Productos";
+include_once(__DIR__ . '/../config.php');?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lista de Productos - Comercial X</title>
-  <link rel="stylesheet" href="../vendors/simplebar/css/simplebar.css">
-  <link rel="stylesheet" href="../css/style.css">
-  <script src="../js/config.js"></script>
-  <script src="../js/color-modes.js"></script>
+  <link rel="stylesheet" href="<?php echo BASE_URL; ?>vendors/simplebar/css/simplebar.css">
+  <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/style.css">
+  <script src="<?php echo BASE_URL; ?>js/config.js"></script>
+  <script src="<?php echo BASE_URL; ?>js/color-modes.js"></script>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous">
 
   <!-- Diseño propio de la lista (usa los colores de CoreUI, claro y oscuro) -->
   <style>
-    .lp { --lp-azul: #2f4fe0; --lp-azul-osc: #1b2f8f; --lp-radio: 1rem; }
+    .lp { --lp-azul: #2f4fe0; --lp-azul-osc: #1b2f8f; --lp-radio: 1rem; font-size: .96rem; }
 
     .lp-hero {
       position: relative; overflow: hidden; color: #fff;
@@ -34,7 +37,7 @@
       background: rgba(255, 255, 255, .16); border: 2px solid rgba(255, 255, 255, .45);
     }
     .lp-hero-texto { flex: 1 1 14rem; z-index: 1; }
-    .lp-hero-texto h1 { font-size: 1.6rem; font-weight: 700; margin: 0; }
+    .lp-hero-texto h1 { font-size: 1.54rem; font-weight: 700; margin: 0; }
     .lp-hero-texto p { margin: .2rem 0 0; opacity: .85; }
     .lp-hero-deco { position: absolute; right: 1.5rem; bottom: -1.2rem; font-size: 8rem; opacity: .13; transform: rotate(-8deg); }
     .lp-btn-hero {
@@ -63,8 +66,8 @@
       width: 3rem; height: 3rem; flex: none; border-radius: 50%; display: grid; place-items: center;
       font-size: 1.35rem; color: #fff; background: var(--lp-tono); z-index: 1;
     }
-    .lp-stat-num { font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
-    .lp-stat-etq { font-size: .85rem; color: var(--cui-secondary-color); }
+    .lp-stat-num { font-size: 1.54rem; font-weight: 700; line-height: 1.1; }
+    .lp-stat-etq { font-size: .82rem; color: var(--cui-secondary-color); }
     .lp-stat-azul { --lp-tono: #2f6bff; }
     .lp-stat-verde { --lp-tono: #1fb870; }
     .lp-stat-naranja { --lp-tono: #f5a524; }
@@ -80,7 +83,7 @@
     .lp-chips, .lp-herr { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
     .lp-chip {
       border: 1px solid transparent; background: var(--cui-tertiary-bg); color: var(--cui-body-color);
-      border-radius: 2rem; padding: .4rem .95rem; font-size: .9rem; font-weight: 500; cursor: pointer;
+      border-radius: 2rem; padding: .4rem .95rem; font-size: .86rem; font-weight: 500; cursor: pointer;
       transition: background .15s, color .15s;
     }
     .lp-chip:hover { background: var(--cui-secondary-bg); }
@@ -107,12 +110,12 @@
     .lp-tabla-wrap { overflow-x: auto; }
     .lp-tabla { width: 100%; border-collapse: collapse; }
     .lp-tabla th {
-      text-align: left; padding: .8rem 1.1rem; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em;
+      text-align: left; padding: .8rem 1.1rem; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em;
       color: var(--cui-secondary-color); background: var(--cui-tertiary-bg); white-space: nowrap; user-select: none;
     }
     .lp-tabla th[data-orden] { cursor: pointer; }
     .lp-tabla th[data-orden]:hover { color: var(--cui-body-color); }
-    .lp-tabla th .bi { font-size: .7rem; margin-left: .25rem; opacity: .8; }
+    .lp-tabla th .bi { font-size: .67rem; margin-left: .25rem; opacity: .8; }
     .lp-tabla td { padding: .8rem 1.1rem; border-top: 1px solid var(--cui-border-color); vertical-align: middle; }
     .lp-tabla tbody tr:hover { background: var(--cui-tertiary-bg); }
     .lp-tabla tr.lp-baja td:not(:last-child) { opacity: .55; }
@@ -121,11 +124,11 @@
     .lp-prod { display: flex; align-items: center; gap: .75rem; }
     .lp-prod-ico { width: 2.5rem; height: 2.5rem; flex: none; border-radius: .7rem; display: grid; place-items: center; background: rgba(47, 79, 224, .12); color: var(--lp-azul); font-size: 1.15rem; }
     .lp-prod-nom { font-weight: 600; }
-    .lp-prod-sub { font-size: .8rem; color: var(--cui-secondary-color); }
-    .lp-cat { display: inline-block; padding: .2rem .7rem; border-radius: 2rem; font-size: .8rem; background: rgba(138, 79, 224, .13); color: #8a4fe0; font-weight: 500; }
+    .lp-prod-sub { font-size: .77rem; color: var(--cui-secondary-color); }
+    .lp-cat { display: inline-block; padding: .2rem .7rem; border-radius: 2rem; font-size: .77rem; background: rgba(138, 79, 224, .13); color: #8a4fe0; font-weight: 500; }
     .lp-stock-num { font-weight: 700; }
     .lp-stock-num.bajo { color: #e5484d; }
-    .lp-pill { display: inline-flex; align-items: center; gap: .35rem; padding: .22rem .75rem; border-radius: 2rem; font-size: .8rem; font-weight: 600; }
+    .lp-pill { display: inline-flex; align-items: center; gap: .35rem; padding: .22rem .75rem; border-radius: 2rem; font-size: .77rem; font-weight: 600; }
     .lp-pill::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; }
     .lp-pill.activo { background: rgba(31, 184, 112, .15); color: #14a05f; }
     .lp-pill.inactivo { background: rgba(120, 130, 150, .18); color: var(--cui-secondary-color); }
@@ -146,13 +149,13 @@
     .lp-vacio-img .bi-box-seam { position: relative; font-size: 5.5rem; color: var(--lp-azul); }
     .lp-vacio-img .bi-search { position: absolute; right: .6rem; bottom: .6rem; width: 2.8rem; height: 2.8rem; border-radius: 50%; display: grid; place-items: center; background: var(--lp-azul); color: #fff; font-size: 1.2rem; box-shadow: 0 .4rem .9rem rgba(47, 79, 224, .4); }
     .lp-vacio-txt { max-width: 22rem; }
-    .lp-vacio-txt h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: .5rem; }
+    .lp-vacio-txt h2 { font-size: 1.44rem; font-weight: 700; margin-bottom: .5rem; }
     .lp-vacio-txt p { color: var(--cui-secondary-color); margin-bottom: 1rem; }
     .lp-btn { display: inline-flex; align-items: center; gap: .4rem; border: 0; border-radius: 2rem; padding: .6rem 1.4rem; background: var(--lp-azul); color: #fff; font-weight: 600; text-decoration: none; box-shadow: 0 .4rem 1rem rgba(47, 79, 224, .35); }
     .lp-btn:hover { color: #fff; filter: brightness(1.1); }
 
     /* ---------- Pie de la tabla ---------- */
-    .lp-pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: .8rem 1.1rem; background: var(--cui-tertiary-bg); border-top: 1px solid var(--cui-border-color); font-size: .9rem; }
+    .lp-pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: .8rem 1.1rem; background: var(--cui-tertiary-bg); border-top: 1px solid var(--cui-border-color); font-size: .86rem; }
     .lp-pie-der { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
     .lp-pie select { border: 1px solid var(--cui-border-color); border-radius: 2rem; background: var(--cui-body-bg); color: var(--cui-body-color); padding: .2rem .5rem; }
     .lp-pager { display: flex; gap: .3rem; }
@@ -284,16 +287,39 @@
       </div>
     </div>
 
+    <div class="modal fade" id="modalMargenProducto" tabindex="-1" aria-labelledby="tituloModalMargenProducto" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow">
+          <form id="formularioMargenProducto" novalidate>
+            <div class="modal-header">
+              <h5 class="modal-title" id="tituloModalMargenProducto">Asignar margen de ganancia</h5>
+              <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              <p id="detalleMargenProducto" class="small text-body-secondary"></p>
+              <label for="margenGananciaProducto" class="form-label">Margen de ganancia (%)</label>
+              <input type="number" class="form-control" id="margenGananciaProducto" min="0.01" max="100" step="0.01" required autocomplete="off">
+              <div class="form-text">Si hay costo promedio registrado, el precio se recalculará usando ese costo.</div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancelar</button>
+              <button type="submit" id="btnGuardarMargen" class="btn btn-primary">Guardar margen</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <footer class="footer px-4">
       <div>Comercial X &copy; 2026.</div>
     </footer>
 
     </div> <!-- cierra <div class="wrapper"> que se abrio en Barra_Lateral.php -->
 
-    <script src="/project_comercial_ppi/vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
-    <script src="/project_comercial_ppi/vendors/simplebar/js/simplebar.min.js"></script>
-    <script src="/project_comercial_ppi/js/Notificaciones.js?v=<?php echo filemtime('../js/Notificaciones.js'); ?>"></script>
+    <script src="<?php echo BASE_URL; ?>vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
+    <script src="<?php echo BASE_URL; ?>vendors/simplebar/js/simplebar.min.js"></script>
+    <script src="<?php echo BASE_URL; ?>js/Notificaciones.js?v=<?php echo filemtime('../js/Notificaciones.js'); ?>"></script>
 
-  <script src="../js/JSLista_Productos.js?v=<?php echo filemtime('../js/JSLista_Productos.js'); ?>"></script>
+  <script src="<?php echo BASE_URL; ?>js/JSLista_Productos.js?v=<?php echo filemtime('../js/JSLista_Productos.js'); ?>"></script>
 </body>
 </html>

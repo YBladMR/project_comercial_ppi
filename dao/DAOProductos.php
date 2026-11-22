@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $idproducto  = $_POST['id_producto'] ?? '';
@@ -7,7 +8,6 @@ $idcategoria = $_POST['id_categoria'] ?? '';
 $estado      = $_POST['estado'] ?? '';
 
 $stockminimo = vacioANulo($_POST['stock_minimo'] ?? '') ?? '0';
-$precio      = vacioANulo($_POST['precio_venta'] ?? '') ?? '0';
 
 $descripcion = vacioANulo($_POST['descripcion'] ?? '');
 $material    = vacioANulo($_POST['material'] ?? '');
@@ -17,9 +17,17 @@ $profundidad = vacioANulo($_POST['profundidad_cm'] ?? '');
 $peso        = vacioANulo($_POST['peso_kg'] ?? '');
 
 $opcion = $_POST['opcion'] ?? $_GET['opcion'] ?? '';
+$operacionesGestionProducto = ['guardar', 'modificar', 'asignarMargen', 'cambiarEstado'];
+requerir_permiso(
+    in_array($opcion, $operacionesGestionProducto, true) ? 'productos.gestionar' : 'productos.consultar',
+    true
+);
+if (in_array($opcion, $operacionesGestionProducto, true)) {
+    requerir_post_api();
+}
 
 if ($opcion == "guardar") {
-    $error = validarProducto($nombre, $idcategoria, $descripcion, $material, $alto, $ancho, $profundidad, $peso, $precio, $stockminimo);
+    $error = validarProducto($nombre, $idcategoria, $descripcion, $material, $alto, $ancho, $profundidad, $peso, $stockminimo);
     if ($error !== null) {
         echo json_encode(["estado" => false, "mensaje" => $error], JSON_UNESCAPED_UNICODE);
         exit;
@@ -36,10 +44,10 @@ if ($opcion == "guardar") {
         exit;
     }
 
-    $sql = "INSERT INTO producto (nombre, descripcion, id_categoria, alto_cm, ancho_cm, profundidad_cm, peso_kg, material, precio_venta, stock_minimo)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO producto (nombre, descripcion, id_categoria, alto_cm, ancho_cm, profundidad_cm, peso_kg, material, stock_minimo)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conexion->prepare($sql);
-    $stmt->bind_param("ssissssssi", $nombre, $descripcion, $idcategoria, $alto, $ancho, $profundidad, $peso, $material, $precio, $stockminimo);
+    $stmt->bind_param("ssisssssi", $nombre, $descripcion, $idcategoria, $alto, $ancho, $profundidad, $peso, $material, $stockminimo);
 
     if ($stmt->execute()) {
         echo json_encode([
@@ -63,7 +71,7 @@ if ($opcion == "modificar") {
         exit;
     }
 
-    $error = validarProducto($nombre, $idcategoria, $descripcion, $material, $alto, $ancho, $profundidad, $peso, $precio, $stockminimo);
+    $error = validarProducto($nombre, $idcategoria, $descripcion, $material, $alto, $ancho, $profundidad, $peso, $stockminimo);
     if ($error !== null) {
         echo json_encode(["estado" => false, "mensaje" => $error], JSON_UNESCAPED_UNICODE);
         exit;
@@ -80,9 +88,9 @@ if ($opcion == "modificar") {
         exit;
     }
 
-    $sql = "UPDATE producto SET nombre=?, descripcion=?, id_categoria=?, alto_cm=?, ancho_cm=?, profundidad_cm=?, peso_kg=?, material=?, precio_venta=?, stock_minimo=? WHERE id_producto=?";
+    $sql = "UPDATE producto SET nombre=?, descripcion=?, id_categoria=?, alto_cm=?, ancho_cm=?, profundidad_cm=?, peso_kg=?, material=?, stock_minimo=? WHERE id_producto=?";
     $stmt = $conexion->prepare($sql);
-    $stmt->bind_param("ssissssssii", $nombre, $descripcion, $idcategoria, $alto, $ancho, $profundidad, $peso, $material, $precio, $stockminimo, $idproducto);
+    $stmt->bind_param("ssisssssii", $nombre, $descripcion, $idcategoria, $alto, $ancho, $profundidad, $peso, $material, $stockminimo, $idproducto);
 
     if ($stmt->execute()) {
         echo json_encode([
@@ -97,6 +105,79 @@ if ($opcion == "modificar") {
     }
 
     $stmt->close();
+    $conexion->close();
+}
+
+if ($opcion == "asignarMargen") {
+    $margen = vacioANulo($_POST['margen_ganancia'] ?? '');
+    if (!ctype_digit((string) $idproducto) || (int) $idproducto <= 0 || !esDecimal($margen, 100) || (float) $margen <= 0) {
+        echo json_encode(["estado" => false, "mensaje" => "El margen debe ser un número mayor que 0 y máximo de 100%"], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    require_once "../conexion.php";
+
+    $sqlCosto = "SELECT i.costo_promedio
+                 FROM producto AS p
+                 LEFT JOIN inventario AS i ON i.id_producto = p.id_producto
+                 WHERE p.id_producto=?";
+    $stmtCosto = $conexion->prepare($sqlCosto);
+    $stmtCosto->bind_param("i", $idproducto);
+    $stmtCosto->execute();
+    $resultadoCosto = $stmtCosto->get_result();
+
+    if ($resultadoCosto->num_rows === 0) {
+        echo json_encode(["estado" => false, "mensaje" => "El producto no existe"], JSON_UNESCAPED_UNICODE);
+        $stmtCosto->close();
+        $conexion->close();
+        exit;
+    }
+
+    $filaCosto = $resultadoCosto->fetch_assoc();
+    $stmtCosto->close();
+    $costoPromedio = $filaCosto['costo_promedio'];
+    if ($costoPromedio === null || (float) $costoPromedio <= 0) {
+        $sqlGuardarMargen = "UPDATE producto SET margen_ganancia=? WHERE id_producto=?";
+        $stmtGuardarMargen = $conexion->prepare($sqlGuardarMargen);
+        $stmtGuardarMargen->bind_param("di", $margen, $idproducto);
+        if ($stmtGuardarMargen->execute()) {
+            echo json_encode([
+                "estado"  => true,
+                "mensaje" => "Margen guardado. El precio no se recalculó porque aún no hay costo promedio de inventario"
+            ], JSON_UNESCAPED_UNICODE);
+        } else {
+            echo json_encode(["estado" => false, "mensaje" => "Error al asignar el margen de ganancia"], JSON_UNESCAPED_UNICODE);
+        }
+        $stmtGuardarMargen->close();
+        $conexion->close();
+        exit;
+    }
+
+    $margen = (float) $margen;
+    $precioCalculado = round((float) $costoPromedio * (1 + $margen / 100), 2);
+    if ($precioCalculado > 9999.99) {
+        echo json_encode(["estado" => false, "mensaje" => "El precio calculado supera el máximo permitido de $9,999.99"], JSON_UNESCAPED_UNICODE);
+        $conexion->close();
+        exit;
+    }
+
+    $sqlActualizar = "UPDATE producto SET margen_ganancia=?, precio_venta=? WHERE id_producto=?";
+    $stmtActualizar = $conexion->prepare($sqlActualizar);
+    $stmtActualizar->bind_param("ddi", $margen, $precioCalculado, $idproducto);
+
+    if ($stmtActualizar->execute()) {
+        echo json_encode([
+            "estado"  => true,
+            "mensaje" => "Margen asignado y precio de venta actualizado correctamente"
+        ], JSON_UNESCAPED_UNICODE);
+    } else {
+        echo json_encode([
+            "estado"  => false,
+            "mensaje" => "Error al asignar el margen de ganancia"
+        ], JSON_UNESCAPED_UNICODE);
+    }
+
+    $stmtActualizar->close();
     $conexion->close();
 }
 
@@ -133,9 +214,12 @@ if ($opcion == "consultar") {
     try {
         $sql = "SELECT p.id_producto, p.nombre, c.nombre AS categoria,
                        p.material, p.alto_cm, p.ancho_cm, p.profundidad_cm, p.peso_kg,
-                       p.stock_minimo, p.precio_venta, p.estado, 0 AS existencia
+                       p.stock_minimo, p.precio_venta, p.margen_ganancia, p.estado,
+                       COALESCE(i.costo_promedio, 0) AS costo_promedio,
+                       COALESCE(i.existencia, 0) AS existencia
                 FROM producto AS p
                 INNER JOIN categoria AS c ON c.id_categoria = p.id_categoria
+                LEFT JOIN inventario AS i ON i.id_producto = p.id_producto
                 ORDER BY p.nombre";
         $resultado = $conexion->query($sql);
         if (!$resultado) {
@@ -156,6 +240,8 @@ if ($opcion == "consultar") {
                 'stock_minimo' => $fila['stock_minimo'],
                 'existencia'   => $fila['existencia'],
                 'precio_venta' => $fila['precio_venta'],
+                'margen_ganancia' => $fila['margen_ganancia'],
+                'costo_promedio' => $fila['costo_promedio'],
                 'estado'       => $fila['estado']
             ];
         }
@@ -224,7 +310,7 @@ function esDecimal($valor, $maximo) {
     return preg_match('/^\d{1,10}(\.\d{1,2})?$/', (string) $valor) === 1 && (float) $valor <= $maximo;
 }
 
-function validarProducto($nombre, $idcategoria, $descripcion, $material, $alto, $ancho, $profundidad, $peso, $precio, $stockminimo) {
+function validarProducto($nombre, $idcategoria, $descripcion, $material, $alto, $ancho, $profundidad, $peso, $stockminimo) {
     if ($nombre == "" || mb_strlen($nombre) > 120) {
         return "El nombre es obligatorio (máximo 120 caracteres)";
     }
@@ -242,9 +328,6 @@ function validarProducto($nombre, $idcategoria, $descripcion, $material, $alto, 
         if ($valor !== null && !esDecimal($valor, 999.99)) {
             return "$etiqueta debe ser un número entre 0 y 999.99 (máximo 2 decimales)";
         }
-    }
-    if (!esDecimal($precio, 9999.99)) {
-        return "El precio de venta debe ser un número entre 0 y 9999.99 (máximo 2 decimales)";
     }
     if (preg_match('/^\d{1,9}$/', (string) $stockminimo) !== 1) {
         return "El stock mínimo debe ser un entero mayor o igual a 0";

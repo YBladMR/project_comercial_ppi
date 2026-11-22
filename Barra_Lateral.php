@@ -1,4 +1,54 @@
+<?php
+require_once __DIR__ . '/autenticacion/seguridad.php';
+requerir_autenticacion();
+?>
+<script>
+(() => {
+  const tokenCsrf = <?php echo json_encode(obtener_token_csrf(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+  const fetchOriginal = window.fetch.bind(window);
+
+  window.fetch = (entrada, opciones = {}) => {
+    const metodoEntrada = typeof Request !== "undefined" && entrada instanceof Request ? entrada.method : "GET";
+    const metodo = String(opciones.method || metodoEntrada).toUpperCase();
+
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(metodo)) {
+      const encabezados = new Headers(opciones.headers || (typeof Request !== "undefined" && entrada instanceof Request ? entrada.headers : undefined));
+      encabezados.set("X-CSRF-Token", tokenCsrf);
+      opciones = { ...opciones, headers: encabezados };
+    }
+
+    return fetchOriginal(entrada, opciones);
+  };
+})();
+</script>
 <div class="sidebar sidebar-dark sidebar-fixed border-end" id="sidebar">
+  <style>
+  #sidebar {
+    --cui-sidebar-bg: #0e274c;
+    --cui-sidebar-brand-bg: #0e274c;
+  }
+
+  #sidebar .ubicaciones-submenu {
+    margin-inline-start: .75rem;
+    border-inline-start: 1px solid rgba(255, 255, 255, .16);
+  }
+
+  #sidebar .ubicaciones-submenu .nav-link {
+    padding-block: .4rem;
+    font-size: .8rem;
+    color: rgba(255, 255, 255, .78);
+  }
+
+  #sidebar .ubicaciones-submenu .nav-link:hover,
+  #sidebar .ubicaciones-submenu .nav-link.active {
+    color: #fff;
+  }
+
+  #sidebar .ubicaciones-submenu .nav-icon-bullet {
+    width: .28rem;
+    height: .28rem;
+  }
+</style>
   <div class="sidebar-header border-bottom">
     <div class="sidebar-brand me-auto">
       <svg role="img" aria-label="CoreUI Logo Full" class="sidebar-brand-full" width="88" height="32" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 312 115">
@@ -17,7 +67,7 @@
 
   <ul class="sidebar-nav" data-coreui="navigation" data-simplebar>
     <li class="nav-item">
-      <a class="nav-link" href="/project_comercial_ppi/index.html">
+      <a class="nav-link" href="<?php echo BASE_URL; ?>index.php">
         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
           <path fill="var(--ci-primary-color, currentcolor)" d="M425.706 142.294A240 240 0 0 0 16 312v88h144v-32H48v-56c0-114.691 93.309-208 208-208s208 93.309 208 208v56H352v32h144v-88a238.43 238.43 0 0 0-70.294-169.706" />
           <path fill="var(--ci-primary-color, currentcolor)" d="M80 264h32v32H80zm160-136h32v32h-32zm-104 40h32v32h-32zm264 96h32v32h-32zm-102.778 71.1 69.2-144.173-28.85-13.848-69.183 144.135a64.141 64.141 0 1 0 28.833 13.886M256 416a32 32 0 1 1 32-32 32.036 32.036 0 0 1-32 32" />
@@ -37,8 +87,8 @@
         Productos
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="/project_comercial_ppi/forms/Productos.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
-        <li class="nav-item"><a class="nav-link" href="/project_comercial_ppi/forms/Lista_Productos.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Productos.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Lista_Productos.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
         <li class="nav-group">
           <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -47,8 +97,8 @@
             Categorías
           </a>
           <ul class="nav-group-items compact">
-            <li class="nav-item"><a class="nav-link" href="/project_comercial_ppi/forms/categoria.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
-            <li class="nav-item"><a class="nav-link" href="/project_comercial_ppi/forms/lista-categoria.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/categoria.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-categoria.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
             </ul>
         </li>
       </ul>
@@ -62,9 +112,18 @@
         Inventario
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Existencias</a></li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Ubicaciones</a></li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Ajustes</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-inventario.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Existencias</a></li>
+        <li class="nav-group">
+          <a class="nav-link nav-group-toggle" href="#">
+            <span class="nav-icon"><span class="nav-icon-bullet"></span></span>
+            Ubicaciones
+          </a>
+          <ul class="nav-group-items compact ubicaciones-submenu">
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/ubicacion.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Agregar</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-ubicacion.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/ajustes-inventario.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Ajustes</a></li>
       </ul>
     </li>
 
@@ -76,7 +135,7 @@
         Kárdex
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Movimientos</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/kardex.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Movimientos</a></li>
       </ul>
     </li>
 
@@ -88,8 +147,8 @@
         Proveedores
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/proveedor.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-proveedor.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
       </ul>
     </li>
 
@@ -101,8 +160,8 @@
         Compras
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar/Anular</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Compra.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Lista_Compras.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar/Anular</a></li>
       </ul>
     </li>
 
@@ -117,7 +176,8 @@
         <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
         <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar/Anular</a></li>
         <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Clientes</a></li>
-      </ul>
+         <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
     </li>
 
     <li class="nav-group">
@@ -136,6 +196,7 @@
       </ul>
     </li>
 
+    <?php if (tiene_permiso('usuarios.gestionar') || tiene_permiso('roles.gestionar')): ?>
     <li class="nav-divider"></li>
     <li class="nav-title">Configuración</li>
 
@@ -151,6 +212,7 @@
         <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Roles</a></li>
       </ul>
     </li>
+    <?php endif; ?>
   </ul>
 
   <div class="sidebar-footer border-top d-none d-md-flex">
@@ -158,7 +220,7 @@
   </div>
 </div>
 
-<div class="wrapper d-flex flex-column min-vh-100 bg-light">
+<div class="wrapper d-flex flex-column min-vh-100 bg-body">
   <header class="header header-sticky p-0 mb-4">
     <div class="container-fluid border-bottom px-4">
       <button class="header-toggler" type="button" onclick="coreui.Sidebar.getInstance(document.querySelector('#sidebar')).toggle()" style="margin-inline-start: -14px">
@@ -196,7 +258,7 @@
         <li class="nav-item dropdown">
           <button class="btn btn-link nav-link py-2 px-2 d-flex align-items-center" type="button" aria-expanded="false" data-coreui-toggle="dropdown">
             <svg class="icon icon-lg theme-icon-active" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-              <path fill="var(--ci-primary-color, currentcolor)" d="M256 16C123.452 16 16 123.452 16 256s107.452 240 240 240 240-107.452 240-240S388.548 16 256 16m-22 446.849a208.35 208.35 0 0 1-169.667-125.9c-.364-.859-.706-1.724-1.057-2.587L234 429.939Zm0-69.582L50.889 290.76A210 210 0 0 1 48 256q0-9.912.922-19.67L234 339.939Zm0-90L54.819 202.96a206 206 0 0 1 9.514-27.913Q67.1 168.5 70.3 162.191L234 253.934Zm0-86.015L86.914 134.819a209.4 209.4 0 0 1 22.008-25.993.72-3.72 7.6-7.228L234 166.027Zm0-87.708-89.648-49.093A206.95 206.95 0 0 1 234 49.151ZM464 256a207.775 207.775 0 0 1-198 207.761V48.239A207.79 207.79 0 0 1 464 256" class="ci-primary" />
+              <path fill="var(--ci-primary-color, currentcolor)" d="M256 16C123.452 16 16 123.452 16 256s107.452 240 240 240 240-107.452 240-240S388.548 16 256 16m-22 446.849a208.35 208.35 0 0 1-169.667-125.9c-.364-.859-.706-1.724-1.057-2.587L234 429.939Zm0-69.582L50.889 290.76A210 210 0 0 1 48 256q0-9.912.922-19.67L234 339.939Zm0-90L54.819 202.96a206 206 0 0 1 9.514-27.913Q67.1 168.5 70.3 162.191L234 253.934Zm0-86.015L86.914 134.819a209.4 209.4 0 0 1 22.008-25.9q3.72-3.72 7.6-7.228L234 166.027Zm0-87.708-89.648-49.093A206.95 206.95 0 0 1 234 49.151ZM464 256a207.775 207.775 0 0 1-198 207.761V48.239A207.79 207.79 0 0 1 464 256" class="ci-primary" />
             </svg>
           </button>
           <ul class="dropdown-menu dropdown-menu-end" style="--cui-dropdown-min-width: 8rem">
@@ -211,14 +273,18 @@
         <li class="nav-item dropdown">
           <a class="nav-link py-0 pe-0" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
             <div class="avatar avatar-md">
-              <img class="avatar-img" src="/project_comercial_ppi/assets/img/avatars/8.jpg" alt="user@email.com">
+              <img class="avatar-img" src="<?php echo BASE_URL; ?>assets/img/avatars/8.jpg" alt="<?php echo htmlspecialchars(obtener_nombre_usuario(), ENT_QUOTES, 'UTF-8'); ?>">
             </div>
           </a>
           <div class="dropdown-menu dropdown-menu-end pt-0">
-            <div class="dropdown-header bg-body-tertiary text-body-secondary fw-semibold rounded-top mb-2">Account</div>
-            <a class="dropdown-item" href="#">Profile</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="/project_comercial_ppi/authentication/login.html">Logout</a>
+            <div class="dropdown-header bg-body-tertiary text-body-secondary fw-semibold rounded-top mb-2">
+              <?php echo htmlspecialchars(obtener_nombre_usuario(), ENT_QUOTES, 'UTF-8'); ?><br>
+              <small><?php echo htmlspecialchars(obtener_nombre_rol(), ENT_QUOTES, 'UTF-8'); ?></small>
+            </div>
+            <form method="post" action="<?php echo BASE_URL; ?>autenticacion/Cerrar_Sesion.php">
+              <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars(obtener_token_csrf(), ENT_QUOTES, 'UTF-8'); ?>">
+              <button class="dropdown-item" type="submit">Cerrar sesión</button>
+            </form>
           </div>
         </li>
       </ul>
@@ -226,7 +292,7 @@
     <div class="container-fluid px-4">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb my-0">
-          <li class="breadcrumb-item"><a href="/project_comercial_ppi/index.html">Home</a></li>
+          <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>index.php">Home</a></li>
           <li class="breadcrumb-item active"><span><?php echo $titulo_pagina ?? 'Dashboard'; ?></span></li>
         </ol>
       </nav>
