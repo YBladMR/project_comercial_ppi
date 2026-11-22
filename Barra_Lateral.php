@@ -123,7 +123,7 @@ requerir_autenticacion();
             <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-ubicacion.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Ajustes</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/ajustes-inventario.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Ajustes</a></li>
       </ul>
     </li>
 
@@ -135,7 +135,7 @@ requerir_autenticacion();
         Kárdex
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Movimientos</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/kardex.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Movimientos</a></li>
       </ul>
     </li>
 
