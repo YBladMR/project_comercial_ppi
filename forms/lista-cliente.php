@@ -82,7 +82,6 @@ include_once(__DIR__ . '/../config.php');
     }
     .lp-cliente-nom { font-weight: 600; }
     .lp-sub { color: var(--cui-secondary-color); font-size: .8rem; }
-    .lp-cliente .lp-sub { display: none; }
     .lp-contacto { min-width: 12rem; }
     .lp-contacto div + div { margin-top: .15rem; }
     .lp-pill {

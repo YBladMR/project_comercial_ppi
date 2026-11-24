@@ -165,7 +165,7 @@ requerir_autenticacion();
       </ul>
     </li>
 
-       <li class="nav-group">
+    <li class="nav-group">
       <a class="nav-link nav-group-toggle" href="#">
         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
           <path fill="var(--ci-primary-color, currentcolor)" d="M496 160L352 16a32 32 0 0 0-22.6-9.4H192a32 32 0 0 0-32 32v128H32a32 32 0 0 0-32 32v288a32 32 0 0 0 32 32h288a32 32 0 0 0 32-32V352h136a32 32 0 0 0 32-32V182.6A32 32 0 0 0 496 160zM288 480H32V192h256zm192-160H320V192l112-112h48z" />
@@ -173,20 +173,11 @@ requerir_autenticacion();
         Ventas
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Ventas.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
-<li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Lista-ventas.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar/Anular</a></li>        <li class="nav-group">
-          <a class="nav-link nav-group-toggle" href="#">
-            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-    <path fill="var(--ci-primary-color, currentcolor)" d="M256 256a96 96 0 1 0 0-192 96 96 0 0 0 0 192zm-128 32a80 80 0 1 0 0-160 80 80 0 0 0 0 160zm256 0a80 80 0 1 0 0-160 80 80 0 0 0 0 160zM256 288c-88 0-160 72-160 160v32h320v-32c0-88-72-160-160-160zM32 448v32h64v-32c0-42 12-81 33-113-54 8-97 55-97 113zm448 0c0-58-43-105-97-113 21 32 33 71 33 113v32h64v-32z"/>
-        </svg>
-            Clientes
-          </a>
-          <ul class="nav-group-items compact ubicaciones-submenu">
-            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
-            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
-          </ul>
-        </li>
-      </ul>
+        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar/Anular</a></li>
+        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Clientes</a></li>
+         <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
     </li>
 
     <li class="nav-group">
