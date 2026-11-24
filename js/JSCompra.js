@@ -20,6 +20,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     return "$" + (cantidadCentavos / 100).toFixed(2);
   }
 
+  // La interfaz centraliza las solicitudes HTTP al endpoint de compras.
+  async function llamarDaoCompra(opcion, campos = {}) {
+    const datos = new FormData();
+    datos.append("opcion", opcion);
+    Object.entries(campos).forEach(([nombre, valor]) => datos.append(nombre, valor));
+
+    const respuesta = await fetch("../dao/DAOCompras.php", {
+      method: "POST",
+      body: datos,
+    });
+    if (!respuesta.ok) throw new Error("Error HTTP: " + respuesta.status);
+    return respuesta.json();
+  }
+
   function actualizarDisponibilidad() {
     const hayCatalogos = productos.length > 0 && selProveedor.value !== "";
     btnGuardar.disabled = !hayCatalogos;
@@ -98,7 +112,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("totalCompra").textContent = formatoMoneda(subtotalCentavos + ivaCentavos);
   }
 
-  function recopilarDetalles() {
+  // Validaciones de interfaz para avisar al usuario antes de enviar la compra.
+  function validarYRecopilarDetalles() {
     const detalles = [];
     const vistos = new Set();
     for (const fila of cuerpo.querySelectorAll(".linea-compra")) {
@@ -119,11 +134,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function cargarCatalogos() {
-    const datos = new FormData();
-    datos.append("opcion", "consultarCatalogos");
-    const respuesta = await fetch("../dao/DAOCompras.php", { method: "POST", body: datos });
-    if (!respuesta.ok) throw new Error("Error HTTP: " + respuesta.status);
-    const resultado = await respuesta.json();
+    const resultado = await llamarDaoCompra("consultarCatalogos");
     if (!resultado.estado) throw new Error(resultado.mensaje || "No se pudieron cargar los datos");
 
     const catalogos = resultado.datos;
@@ -150,7 +161,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let detalles;
     try {
-      detalles = recopilarDetalles();
+      detalles = validarYRecopilarDetalles();
     } catch (error) {
       notificar("warning", error.message);
       return;
@@ -166,13 +177,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     btnGuardar.disabled = true;
     btnGuardar.textContent = "Registrando...";
     try {
-      const datos = new FormData();
-      datos.append("opcion", "guardar");
-      datos.append("id_proveedor", selProveedor.value);
-      datos.append("detalle", JSON.stringify(detalles));
-      const respuesta = await fetch("../dao/DAOCompras.php", { method: "POST", body: datos });
-      if (!respuesta.ok) throw new Error("Error HTTP: " + respuesta.status);
-      const resultado = await respuesta.json();
+      const resultado = await llamarDaoCompra("guardar", {
+        id_proveedor: selProveedor.value,
+        detalle: JSON.stringify(detalles),
+      });
       if (!resultado.estado) {
         notificar("danger", resultado.mensaje || "No se pudo registrar la compra");
         return;

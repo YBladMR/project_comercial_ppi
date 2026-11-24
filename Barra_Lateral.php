@@ -130,7 +130,7 @@ requerir_autenticacion();
         Kárdex
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Movimientos</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/kardex.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Movimientos</a></li>
       </ul>
     </li>
 

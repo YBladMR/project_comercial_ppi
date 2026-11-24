@@ -246,6 +246,7 @@ if ($opcion === "guardar") {
             $existenciaNueva = $existenciaAnterior + $cantidad;
             if ($existenciaNueva > 4294967295) throw new DomainException("La existencia supera el límite permitido");
 
+            // Recalculando el costo promedio con cada compra
             $costoPromedioNuevo = $existenciaAnterior === 0
                 ? round($costoUnitario, 2)
                 : round((($existenciaAnterior * $costoAnterior) + ($cantidad * $costoUnitario)) / $existenciaNueva, 2);
