@@ -44,10 +44,7 @@ requerir_autenticacion();
     color: #fff;
   }
 
-  #sidebar .ubicaciones-submenu .nav-icon-bullet {
-    width: .28rem;
-    height: .28rem;
-  }
+  #sidebar .ubicaciones-submenu .nav-icon { font-size: .8rem; }
 </style>
   <div class="sidebar-header border-bottom">
     <div class="sidebar-brand me-auto">
@@ -106,24 +103,22 @@ requerir_autenticacion();
 
     <li class="nav-group">
       <a class="nav-link nav-group-toggle" href="#">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-          <path fill="var(--ci-primary-color, currentcolor)" d="M256 32L32 144l224 112 224-112L256 32zm0 178.6L93.7 144 256 70.6 418.3 144 256 210.6zM32 240l42.7 21.3L256 352l181.3-90.7L480 240v64l-224 112L32 304v-64zm0 96l42.7 21.3L256 448l181.3-90.7L480 336v64l-224 112L32 400v-64z" />
-        </svg>
+        <i class="nav-icon bi bi-box-seam" aria-hidden="true"></i>
         Inventario
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-inventario.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Existencias</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-inventario.php"><i class="nav-icon bi bi-boxes" aria-hidden="true"></i> Existencias</a></li>
         <li class="nav-group">
           <a class="nav-link nav-group-toggle" href="#">
-            <span class="nav-icon"><span class="nav-icon-bullet"></span></span>
+            <i class="nav-icon bi bi-geo-alt" aria-hidden="true"></i>
             Ubicaciones
           </a>
           <ul class="nav-group-items compact ubicaciones-submenu">
-            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/ubicacion.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Agregar</a></li>
-            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-ubicacion.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/ubicacion.php"><i class="nav-icon bi bi-plus-circle" aria-hidden="true"></i> Agregar</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-ubicacion.php"><i class="nav-icon bi bi-list-ul" aria-hidden="true"></i> Consultar</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/ajustes-inventario.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Ajustes</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/ajustes-inventario.php"><i class="nav-icon bi bi-arrow-down-up" aria-hidden="true"></i> Ajustar Inventario</a></li>
       </ul>
     </li>
 
@@ -176,9 +171,9 @@ requerir_autenticacion();
         <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
         <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar/Anular</a></li>
         <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Clientes</a></li>
-         <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
-        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
-    </li>
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
+              </li>
 
     <li class="nav-group">
       <a class="nav-link nav-group-toggle" href="#">
