@@ -154,7 +154,9 @@
         <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Ventas.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
 <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Lista-ventas.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar/Anular</a></li>        <li class="nav-group">
           <a class="nav-link nav-group-toggle" href="#">
-            <span class="nav-icon"><span class="nav-icon-bullet"></span></span>
+            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <path fill="var(--ci-primary-color, currentcolor)" d="M256 256a96 96 0 1 0 0-192 96 96 0 0 0 0 192zm-128 32a80 80 0 1 0 0-160 80 80 0 0 0 0 160zm256 0a80 80 0 1 0 0-160 80 80 0 0 0 0 160zM256 288c-88 0-160 72-160 160v32h320v-32c0-88-72-160-160-160zM32 448v32h64v-32c0-42 12-81 33-113-54 8-97 55-97 113zm448 0c0-58-43-105-97-113 21 32 33 71 33 113v32h64v-32z"/>
+        </svg>
             Clientes
           </a>
           <ul class="nav-group-items compact ubicaciones-submenu">
