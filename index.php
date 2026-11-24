@@ -2,6 +2,7 @@
 require_once __DIR__ . '/autenticacion/seguridad.php';
 requerir_permiso('panel.ver'); 
 $titulo_pagina = "Panel Principal"; 
+$contrasenaActualizada = ($_GET['contrasena'] ?? '') === 'actualizada';
 include_once(__DIR__ . '/config.php');
 ?>
 <!DOCTYPE html>
@@ -37,6 +38,9 @@ include_once(__DIR__ . '/config.php');
       <!-- Fila de bienvenida o resumen -->
       <div class="row">
         <div class="col-12">
+          <?php if ($contrasenaActualizada): ?>
+            <div class="alert alert-success" role="status">Tu contraseña se actualizó correctamente.</div>
+          <?php endif; ?>
           <div class="card mb-4">
             <div class="card-header fw-bold">
               Bienvenido al Sistema - Comercial X

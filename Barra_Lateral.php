@@ -203,8 +203,12 @@ requerir_autenticacion();
         Administración
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Usuarios</a></li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Roles</a></li>
+        <?php if (tiene_permiso('usuarios.gestionar')): ?>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Usuarios.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Usuarios</a></li>
+        <?php endif; ?>
+        <?php if (tiene_permiso('roles.gestionar')): ?>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Roles.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Roles y permisos</a></li>
+        <?php endif; ?>
       </ul>
     </li>
     <?php endif; ?>
@@ -276,6 +280,7 @@ requerir_autenticacion();
               <?php echo htmlspecialchars(obtener_nombre_usuario(), ENT_QUOTES, 'UTF-8'); ?><br>
               <small><?php echo htmlspecialchars(obtener_nombre_rol(), ENT_QUOTES, 'UTF-8'); ?></small>
             </div>
+            <a class="dropdown-item" href="<?php echo BASE_URL; ?>autenticacion/cambiar_contrasena.php">Cambiar contraseña</a>
             <form method="post" action="<?php echo BASE_URL; ?>autenticacion/Cerrar_Sesion.php">
               <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars(obtener_token_csrf(), ENT_QUOTES, 'UTF-8'); ?>">
               <button class="dropdown-item" type="submit">Cerrar sesión</button>

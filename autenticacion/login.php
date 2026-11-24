@@ -13,7 +13,7 @@ if (isset($_GET['salida'])) {
 }
 
 if (esta_autenticado()) {
-    requerir_permiso('panel.ver');
+    requerir_autenticacion();
     header('Location: ' . BASE_URL . 'index.php');
     exit;
 }
@@ -30,18 +30,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         require_once __DIR__ . '/../conexion.php';
 
         try {
-            $sql = "SELECT u.id_usuario, u.usuario, u.contrasena, u.nombre, u.id_rol,
+            $indiceUsuario = crear_indice_usuario($usuarioIngresado);
+            $sql = "SELECT u.id_usuario, u.usuario, u.usuario_indice, u.contrasena, u.nombre,
+                           u.debe_cambiar_contrasena,
                            u.estado, r.nombre AS rol
                     FROM usuario AS u
                     INNER JOIN rol AS r ON r.id_rol = u.id_rol
-                    WHERE u.usuario = ?
+                    WHERE u.usuario_indice = ?
+                       OR (u.usuario_indice IS NULL AND u.usuario = ?)
                     LIMIT 1";
             $stmt = $conexion->prepare($sql);
             if (!$stmt) {
                 throw new RuntimeException('No se pudo preparar la consulta de inicio de sesión.');
             }
 
-            $stmt->bind_param('s', $usuarioIngresado);
+            $stmt->bind_param('ss', $indiceUsuario, $usuarioIngresado);
             $stmt->execute();
             $resultado = $stmt->get_result();
             $usuario = $resultado ? $resultado->fetch_assoc() : null;
@@ -60,6 +63,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($usuario && $usuario['estado'] === 'activo'
                 && password_verify($contrasenaIngresada, $usuario['contrasena'])) {
 
+                // Convierte las cuentas existentes al nuevo formato durante
+                // su siguiente login. El fallback anterior solo aplica a filas
+                // que aún no tienen índice HMAC.
+                $usuarioLegible = $usuario['usuario_indice'] === null
+                    ? (string) $usuario['usuario']
+                    : descifrar_usuario((string) $usuario['usuario']);
+                if ($usuario['usuario_indice'] === null) {
+                    $usuarioCifrado = cifrar_usuario($usuarioLegible);
+                    $nuevoIndice = crear_indice_usuario($usuarioLegible);
+                    $stmtUsuario = $conexion->prepare(
+                        'UPDATE usuario SET usuario = ?, usuario_indice = ?
+                         WHERE id_usuario = ? AND usuario_indice IS NULL'
+                    );
+                    if (!$stmtUsuario) {
+                        throw new RuntimeException('No se pudo proteger el nombre de usuario.');
+                    }
+                    $stmtUsuario->bind_param('ssi', $usuarioCifrado, $nuevoIndice, $usuario['id_usuario']);
+                    $stmtUsuario->execute();
+                    $stmtUsuario->close();
+                }
+
                 // Si PHP recomienda un algoritmo/costo más reciente, se renueva
                 // el hash después de autenticar; password_hash genera otra sal.
                 if (password_needs_rehash($usuario['contrasena'], PASSWORD_DEFAULT)) {
@@ -76,15 +100,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 session_regenerate_id(true);
                 $_SESSION = [
                     'id_usuario' => (int) $usuario['id_usuario'],
-                    'usuario' => $usuario['usuario'],
+                    'usuario' => $usuarioLegible,
                     'nombre' => $usuario['nombre'],
-                    'id_rol' => (int) $usuario['id_rol'],
                     'rol' => $usuario['rol'],
+                    'debe_cambiar_contrasena' => (bool) $usuario['debe_cambiar_contrasena'],
                     'ultimo_acceso' => time(),
                     'token_csrf' => bin2hex(random_bytes(32)),
                 ];
 
-                header('Location: ' . BASE_URL . 'index.php');
+                $destino = !empty($usuario['debe_cambiar_contrasena'])
+                    ? 'autenticacion/cambiar_contrasena.php'
+                    : 'index.php';
+                header('Location: ' . BASE_URL . $destino);
                 exit;
             }
 
