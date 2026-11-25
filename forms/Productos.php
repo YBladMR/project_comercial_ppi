@@ -41,9 +41,9 @@ include_once(__DIR__ . '/../config.php');?>
                 </div>
                 
                 <div class="col-md-6">
-                  <label for="id_categoria" class="form-label">Categoría *</label>
+                  <label for="id_categoria" class="form-label">Subcategoría *</label>
                   <select class="form-select" id="id_categoria" name="id_categoria" required>
-                    <option value="0">[SELECCIONE CATEGORÍA]</option>
+                    <option value="0">[SELECCIONE SUBCATEGORÍA]</option>
                   </select>
                 </div>
               </div>
@@ -87,6 +87,14 @@ include_once(__DIR__ . '/../config.php');?>
                   <input type="number" min="0" class="form-control" id="stock_minimo" name="stock_minimo" value="0" required autocomplete="off">
                 </div>
               </div>
+
+              <section class="border rounded p-3 mb-4" aria-labelledby="tituloEspecificaciones">
+                <h5 id="tituloEspecificaciones" class="h6 mb-1">Especificaciones de la subcategoría</h5>
+                <p id="ayudaEspecificaciones" class="form-text mb-3" aria-live="polite">
+                  Selecciona una subcategoría para mostrar sus campos específicos.
+                </p>
+                <div id="camposEspecificaciones" class="row g-3"></div>
+              </section>
 
               <div class="d-flex justify-content-end gap-2">
                 <button type="button" id="btnCancelar" class="btn btn-secondary">Cancelar</button>
