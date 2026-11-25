@@ -31,10 +31,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         })[caracter]);
     }
 
+    function formatoFechaCosto(valor) {
+        if (!valor) return 'Sin registro';
+        const [fecha, hora = ''] = String(valor).split(' ');
+        const [anio, mes, dia] = fecha.split('-');
+        return `${dia}/${mes}/${anio}${hora ? ` ${hora.slice(0, 5)}` : ''}`;
+    }
+
     function obtenerFiltradas() {
         const busqueda = texto.trim().toLocaleLowerCase('es');
         return existencias.filter((fila) =>
-            [fila.producto, fila.categoria, fila.ubicacion, fila.id_producto, fila.id_inventario, fila.existencia]
+            [fila.producto, fila.categoria, fila.ubicacion, fila.id_producto, fila.id_inventario,
+                fila.existencia, fila.costo_promedio, fila.fecha_modificacion]
                 .some((dato) => String(dato ?? '').toLocaleLowerCase('es').includes(busqueda))
         );
     }
@@ -53,11 +61,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <span>
                             <strong class="d-block">${escapar(fila.producto)}</strong>
                             <span class="li-secundario">${escapar(fila.categoria)}</span>
+                            <span class="li-ubicacion d-block"><i class="bi bi-geo-alt" aria-hidden="true"></i> ${escapar(fila.ubicacion || 'Sin ubicación')}</span>
                         </span>
                     </div>
                 </td>
-                <td>${escapar(fila.ubicacion || 'Sin ubicación')}</td>
                 <td class="li-numero">${Number(fila.existencia) || 0}</td>
+                <td class="li-costo">
+                    <strong>$${(Number(fila.costo_promedio) || 0).toLocaleString('es-SV', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                    <span class="li-secundario d-block">Modificado: ${escapar(formatoFechaCosto(fila.fecha_modificacion))}</span>
+                </td>
                 <td class="li-accion">
                     <button type="button" class="btn btn-sm btn-outline-primary btn-asignar-ubicacion"
                             title="${fila.id_ubicacion ? 'Cambiar ubicación' : 'Asignar ubicación'}"
@@ -143,7 +155,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             await cargarUbicaciones();
             if (ubicaciones.length === 0) throw new Error('Primero registra al menos una ubicación.');
 
-            selectUbicacion.innerHTML = '<option value="">Seleccione una ubicación</option>' + ubicaciones.map((ubicacion) =>
+            const opcionSinUbicacion = productoSeleccionado.id_ubicacion
+                ? 'Quitar ubicación actual'
+                : 'Sin ubicación asignada';
+            selectUbicacion.innerHTML = `<option value="">${opcionSinUbicacion}</option>` + ubicaciones.map((ubicacion) =>
                 `<option value="${escapar(ubicacion.id_ubicacion)}">${escapar(ubicacion.nombre)}</option>`
             ).join('');
             selectUbicacion.value = String(productoSeleccionado.id_ubicacion ?? '');

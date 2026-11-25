@@ -28,7 +28,8 @@ try {
     if ($opcion === 'consultar') {
         $sql = "SELECT i.id_inventario, i.id_producto, i.id_ubicacion,
                    p.nombre AS producto, c.nombre AS categoria,
-                   i.existencia,
+                   i.existencia, i.costo_promedio,
+                   DATE_FORMAT(i.fecha_actualizacion, '%Y-%m-%d %H:%i:%s') AS fecha_modificacion,
                    CONCAT_WS(' / ', NULLIF(u.bodega, ''), NULLIF(u.pasillo, ''),
                              NULLIF(u.estante, ''), NULLIF(u.nivel, '')) AS ubicacion
             FROM inventario AS i
@@ -51,7 +52,9 @@ try {
                 'producto' => $fila['producto'],
                 'categoria' => $fila['categoria'] ?: 'Sin categoría',
                 'ubicacion' => $fila['ubicacion'] ?: 'Sin ubicación',
-                'existencia' => $fila['existencia']
+                'existencia' => $fila['existencia'],
+                'costo_promedio' => $fila['costo_promedio'],
+                'fecha_modificacion' => $fila['fecha_modificacion']
             ];
         }
 
@@ -82,9 +85,15 @@ try {
         $idProducto = filter_var($_POST['id_producto'] ?? null, FILTER_VALIDATE_INT, [
             'options' => ['min_range' => 1]
         ]);
-        $idUbicacion = filter_var($_POST['id_ubicacion'] ?? null, FILTER_VALIDATE_INT, [
-            'options' => ['min_range' => 1]
-        ]);
+        $valorUbicacion = $_POST['id_ubicacion'] ?? '';
+        if (!array_key_exists('id_ubicacion', $_POST) || !is_scalar($valorUbicacion)) {
+            $idUbicacion = false;
+        } else {
+            $textoUbicacion = trim((string) $valorUbicacion);
+            $idUbicacion = $textoUbicacion === ''
+                ? null
+                : filter_var($textoUbicacion, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        }
 
         if ($idProducto === false || $idUbicacion === false) {
             http_response_code(422);
@@ -117,37 +126,49 @@ try {
             exit;
         }
 
-        $stmtUbicacion = $conexion->prepare(
-            'SELECT id_ubicacion FROM ubicacion WHERE id_ubicacion = ? FOR UPDATE'
-        );
-        $stmtUbicacion->bind_param('i', $idUbicacion);
-        $stmtUbicacion->execute();
-        $existeUbicacion = $stmtUbicacion->get_result()->num_rows > 0;
-        $stmtUbicacion->close();
+        if ($idUbicacion !== null) {
+            $stmtUbicacion = $conexion->prepare(
+                'SELECT id_ubicacion FROM ubicacion WHERE id_ubicacion = ? FOR UPDATE'
+            );
+            $stmtUbicacion->bind_param('i', $idUbicacion);
+            $stmtUbicacion->execute();
+            $existeUbicacion = $stmtUbicacion->get_result()->num_rows > 0;
+            $stmtUbicacion->close();
 
-        if (!$existeUbicacion) {
-            $conexion->rollback();
-            $transaccionIniciada = false;
-            http_response_code(404);
-            echo json_encode([
-                'estado' => false,
-                'mensaje' => 'La ubicación seleccionada ya no existe.'
-            ], JSON_UNESCAPED_UNICODE);
-            exit;
+            if (!$existeUbicacion) {
+                $conexion->rollback();
+                $transaccionIniciada = false;
+                http_response_code(404);
+                echo json_encode([
+                    'estado' => false,
+                    'mensaje' => 'La ubicación seleccionada ya no existe.'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
         }
 
-        $stmtActualizar = $conexion->prepare(
-            'UPDATE inventario SET id_ubicacion = ? WHERE id_producto = ?'
-        );
-        $stmtActualizar->bind_param('ii', $idUbicacion, $idProducto);
+        if ($idUbicacion === null) {
+            $stmtActualizar = $conexion->prepare(
+                'UPDATE inventario SET id_ubicacion = NULL WHERE id_producto = ?'
+            );
+            $stmtActualizar->bind_param('i', $idProducto);
+        } else {
+            $stmtActualizar = $conexion->prepare(
+                'UPDATE inventario SET id_ubicacion = ? WHERE id_producto = ?'
+            );
+            $stmtActualizar->bind_param('ii', $idUbicacion, $idProducto);
+        }
         $stmtActualizar->execute();
         $stmtActualizar->close();
+
         $conexion->commit();
         $transaccionIniciada = false;
 
         echo json_encode([
             'estado' => true,
-            'mensaje' => 'La ubicación del producto se actualizó correctamente.'
+            'mensaje' => $idUbicacion === null
+                ? 'La ubicación del producto se quitó correctamente.'
+                : 'La ubicación del producto se actualizó correctamente.'
         ], JSON_UNESCAPED_UNICODE);
     }
 } catch (Throwable $error) {
