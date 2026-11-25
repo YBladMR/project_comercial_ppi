@@ -201,7 +201,55 @@ function requerir_autenticacion(bool $esApi = false, bool $permitirCambioObligat
     }
 }
 
-/** Exige iniciar sesión y tener permiso; las llamadas AJAX reciben JSON. */
+/** Muestra el rechazo dentro de la plantilla y conserva la URL solicitada. */
+function mostrar_acceso_denegado(): void
+{
+    http_response_code(403);
+    $baseUrl = htmlspecialchars(BASE_URL, ENT_QUOTES, 'UTF-8');
+    ?>
+    <!doctype html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Acceso denegado - Comercial X</title>
+      <link rel="stylesheet" href="<?= $baseUrl ?>vendors/simplebar/css/simplebar.css">
+      <link rel="stylesheet" href="<?= $baseUrl ?>css/vendors/simplebar.css">
+      <link rel="stylesheet" href="<?= $baseUrl ?>css/style.css">
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous">
+      <script src="<?= $baseUrl ?>js/config.js"></script>
+      <script src="<?= $baseUrl ?>js/color-modes.js"></script>
+    </head>
+    <body>
+      <?php include dirname(__DIR__) . '/Barra_Lateral.php'; ?>
+      <main class="body flex-grow-1 px-3">
+        <div class="container-lg py-4">
+          <div class="alert alert-danger d-flex align-items-start gap-3" role="alert" aria-live="assertive">
+            <i class="bi bi-shield-lock-fill fs-4" aria-hidden="true"></i>
+            <div>
+              <h1 class="h5 mb-1">Acceso denegado</h1>
+              <p class="mb-0">Tu usuario no tiene permiso para acceder a esta sección.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+      <footer class="footer px-4"><div>Comercial X &copy; 2026.</div></footer>
+      </div>
+      <script src="<?= $baseUrl ?>vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
+      <script src="<?= $baseUrl ?>vendors/simplebar/js/simplebar.min.js"></script>
+      <script src="<?= $baseUrl ?>js/Notificaciones.js"></script>
+      <script>
+        if (typeof notificar === 'function') {
+          notificar('danger', 'Tu usuario no tiene permiso para acceder a esta sección.');
+        }
+      </script>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+
+/** Exige sesión y permiso; las llamadas AJAX reciben JSON. */
 function requerir_permiso(string $permiso, bool $esApi = false, bool $permitirCambioObligatorio = false): void
 {
     requerir_autenticacion($esApi, $permitirCambioObligatorio);
@@ -224,10 +272,7 @@ function requerir_permiso(string $permiso, bool $esApi = false, bool $permitirCa
             exit;
         }
 
-        echo '<!doctype html><html lang="es"><meta charset="utf-8"><title>Acceso denegado</title>';
-        echo '<body><h1>Acceso denegado</h1><p>Tu rol no tiene permiso para ver esta página.</p>';
-        echo '<a href="' . htmlspecialchars(BASE_URL . 'index.php', ENT_QUOTES, 'UTF-8') . '">Volver al inicio</a></body></html>';
-        exit;
+        mostrar_acceso_denegado();
     }
 }
 
@@ -280,6 +325,28 @@ function validar_token_csrf($token): bool
     return is_string($token)
         && isset($_SESSION['token_csrf'])
         && hash_equals((string) $_SESSION['token_csrf'], $token);
+}
+
+/** Devuelve un mensaje si una contraseña nueva incumple la política común. */
+function validar_politica_contrasena(string $contrasena): ?string
+{
+    $longitud = function_exists('mb_strlen')
+        ? mb_strlen($contrasena, 'UTF-8')
+        : strlen($contrasena);
+
+    if ($longitud < 12) {
+        return 'La contraseña debe tener al menos 12 caracteres.';
+    }
+    if (strlen($contrasena) > 72) {
+        return 'La contraseña no puede superar 72 bytes.';
+    }
+    if (preg_match('/\p{L}/u', $contrasena) !== 1
+        || preg_match('/\p{N}/u', $contrasena) !== 1
+        || preg_match('/[\p{P}\p{S}]/u', $contrasena) !== 1) {
+        return 'La contraseña debe incluir al menos una letra, un número y un símbolo.';
+    }
+
+    return null;
 }
 
 /**
