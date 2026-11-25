@@ -11,10 +11,13 @@ const ancho = document.getElementById("ancho_cm");
 const profundidad = document.getElementById("profundidad_cm");
 const pesoKg = document.getElementById("peso_kg");
 const stockMinimo = document.getElementById("stock_minimo");
+const camposEspecificaciones = document.getElementById("camposEspecificaciones");
+const ayudaEspecificaciones = document.getElementById("ayudaEspecificaciones");
 
 const MAX_MEDIDA = 999.99;
 
 let htmlBoton = btnGuardar ? btnGuardar.innerHTML : "";
+let solicitudAtributos = 0;
 
 function marcar(campo, valido) {
   campo.classList.toggle("is-invalid", !valido);
@@ -58,6 +61,125 @@ function validarEntero(campo) {
   return valido;
 }
 
+function validarEspecificaciones() {
+  if (!camposEspecificaciones) return true;
+  let valido = true;
+  camposEspecificaciones.querySelectorAll("[data-especificacion]").forEach((campo) => {
+    const valor = campo.value.trim();
+    let campoValido = !campo.required || valor !== "";
+
+    if (campoValido && valor !== "" && campo.dataset.tipo === "numero") {
+      campoValido = /^\d+(\.\d{1,4})?$/.test(valor) && Number(valor) >= 0;
+    }
+
+    marcar(campo, campoValido);
+    if (!campoValido) valido = false;
+  });
+  return valido;
+}
+
+function limpiarEspecificaciones() {
+  if (camposEspecificaciones) camposEspecificaciones.replaceChildren();
+  if (ayudaEspecificaciones) {
+    ayudaEspecificaciones.textContent = "Selecciona una subcategoría para mostrar sus campos específicos.";
+  }
+}
+
+function crearCampoEspecificacion(atributo, valores = {}) {
+  const columna = document.createElement("div");
+  columna.className = "col-md-6";
+
+  const idCampo = `especificacion_${atributo.id_atributo}`;
+  const nombreCampo = `especificaciones[${atributo.id_atributo}]`;
+  const etiqueta = document.createElement("label");
+  etiqueta.className = "form-label";
+  etiqueta.htmlFor = idCampo;
+  etiqueta.textContent = `${atributo.nombre}${atributo.unidad ? ` (${atributo.unidad})` : ""}${atributo.obligatorio ? " *" : ""}`;
+
+  let campo;
+  if (atributo.tipo_dato === "opcion" || atributo.tipo_dato === "booleano") {
+    campo = document.createElement("select");
+    campo.className = "form-select";
+    campo.add(new Option("[SELECCIONE]", ""));
+
+    let opciones = [];
+    if (atributo.tipo_dato === "booleano") {
+      opciones = [
+        { valor: "1", etiqueta: "Sí" },
+        { valor: "0", etiqueta: "No" }
+      ];
+    } else {
+      try {
+        const lista = JSON.parse(atributo.opciones || "[]");
+        if (Array.isArray(lista)) opciones = lista.map((valor) => ({ valor: String(valor), etiqueta: String(valor) }));
+      } catch (error) {
+        console.error("Opciones inválidas en el atributo", atributo.codigo, error);
+      }
+    }
+    opciones.forEach((opcion) => campo.add(new Option(opcion.etiqueta, opcion.valor)));
+  } else {
+    campo = document.createElement("input");
+    campo.type = atributo.tipo_dato === "numero" ? "number" : "text";
+    campo.className = "form-control";
+    if (atributo.tipo_dato === "numero") {
+      campo.min = "0";
+      campo.step = "any";
+    } else {
+      campo.maxLength = 500;
+    }
+  }
+
+  campo.id = idCampo;
+  campo.name = nombreCampo;
+  campo.required = Boolean(atributo.obligatorio);
+  campo.dataset.especificacion = "1";
+  campo.dataset.tipo = atributo.tipo_dato;
+  campo.value = valores[String(atributo.id_atributo)] ?? "";
+  campo.addEventListener("input", () => sinMarca(campo));
+  campo.addEventListener("change", () => sinMarca(campo));
+
+  columna.append(etiqueta, campo);
+  if (atributo.ayuda) {
+    const ayuda = document.createElement("div");
+    ayuda.className = "form-text";
+    ayuda.textContent = atributo.ayuda;
+    columna.appendChild(ayuda);
+  }
+  camposEspecificaciones.appendChild(columna);
+}
+
+async function cargarAtributosCategoria(idCategoria, valores = {}) {
+  const numeroSolicitud = ++solicitudAtributos;
+  limpiarEspecificaciones();
+  if (!idCategoria || idCategoria === "0") return;
+
+  ayudaEspecificaciones.textContent = "Cargando campos de la subcategoría...";
+  const datos = new FormData();
+  datos.append("opcion", "consultarAtributos");
+  datos.append("id_categoria", idCategoria);
+
+  try {
+    const respuesta = await fetch("../dao/DAOProductos.php", { method: "POST", body: datos });
+    if (!respuesta.ok) throw new Error("Error HTTP: " + respuesta.status);
+    const resultado = await respuesta.json();
+    if (numeroSolicitud !== solicitudAtributos) return;
+    if (!resultado.estado || !Array.isArray(resultado.atributos)) {
+      throw new Error(resultado.mensaje || "No se pudieron leer los atributos");
+    }
+
+    if (resultado.atributos.length === 0) {
+      ayudaEspecificaciones.textContent = "Esta categoría aún no tiene especificaciones adicionales definidas.";
+      return;
+    }
+    ayudaEspecificaciones.textContent = "Completa las características específicas de este tipo de producto.";
+    resultado.atributos.forEach((atributo) => crearCampoEspecificacion(atributo, valores));
+  } catch (error) {
+    if (numeroSolicitud !== solicitudAtributos) return;
+    console.error("Error al cargar especificaciones:", error);
+    ayudaEspecificaciones.textContent = "No se pudieron cargar las especificaciones de esta subcategoría.";
+  }
+}
+
 function soloNumeros(campo, conDecimales) {
   campo.addEventListener("keydown", function (e) {
     const bloqueadas = ["e", "E", "+", "-"];
@@ -82,6 +204,7 @@ function limpiarCampos() {
   });
   stockMinimo.value = "0";
   categoria.value = "0";
+  limpiarEspecificaciones();
   [nombre, categoria, material, descripcion, alto, ancho, profundidad, pesoKg, stockMinimo]
     .forEach(sinMarca);
   nombre.focus();
@@ -93,7 +216,10 @@ if (formulario) {
     validarCampo(nombre);
   });
   nombre.addEventListener("blur", () => validarCampo(nombre));
-  categoria.addEventListener("change", validarCategoria);
+  categoria.addEventListener("change", async function () {
+    validarCategoria();
+    await cargarAtributosCategoria(categoria.value);
+  });
 
   soloNumeros(alto, true);
   soloNumeros(ancho, true);
@@ -119,7 +245,8 @@ if (formulario) {
       validarDecimal(ancho, false, MAX_MEDIDA),
       validarDecimal(profundidad, false, MAX_MEDIDA),
       validarDecimal(pesoKg, false, MAX_MEDIDA),
-      validarEntero(stockMinimo)
+      validarEntero(stockMinimo),
+      validarEspecificaciones()
     ];
 
     if (!resultados.every(Boolean)) {
@@ -190,7 +317,7 @@ async function cargarCategorias() {
   categorias.forEach(function (c) {
     const opcion = document.createElement("option");
     opcion.value = c.id_categoria;
-    opcion.textContent = c.nombre;
+    opcion.textContent = c.nombre_padre ? `${c.nombre_padre} / ${c.nombre}` : c.nombre;
     categoria.appendChild(opcion);
   });
 
@@ -230,8 +357,14 @@ async function cargarProducto(idProducto) {
   stockMinimo.value = d.stock_minimo ?? 0;
 
   categoria.value = d.id_categoria;
+  await cargarAtributosCategoria(d.id_categoria, d.especificaciones ?? {});
   if (categoria.value !== String(d.id_categoria)) {
-    categoria.add(new Option(d.categoria + " (inactiva)", d.id_categoria));
+    const etiquetaExtra = d.estado_categoria === "inactivo"
+      ? " (inactiva)"
+      : d.categoria_id_padre === null
+        ? " (categoría principal existente)"
+        : " (categoría no disponible)";
+    categoria.add(new Option(d.categoria + etiquetaExtra, d.id_categoria));
   }
   categoria.value = d.id_categoria;
 

@@ -17,13 +17,48 @@ $profundidad = vacioANulo($_POST['profundidad_cm'] ?? '');
 $peso        = vacioANulo($_POST['peso_kg'] ?? '');
 
 $opcion = $_POST['opcion'] ?? $_GET['opcion'] ?? '';
-$operacionesGestionProducto = ['guardar', 'modificar', 'asignarMargen', 'cambiarEstado'];
+$operacionesGestionProducto = ['guardar', 'modificar', 'asignarMargen', 'cambiarEstado', 'consultarAtributos'];
 requerir_permiso(
     in_array($opcion, $operacionesGestionProducto, true) ? 'productos.gestionar' : 'productos.consultar',
     true
 );
 if (in_array($opcion, $operacionesGestionProducto, true)) {
     requerir_post_api();
+}
+
+if ($opcion === 'consultarAtributos') {
+    require_once __DIR__ . '/../conexion.php';
+    $idCategoriaAtributos = filter_var($_POST['id_categoria'] ?? null, FILTER_VALIDATE_INT);
+    if (!$idCategoriaAtributos || $idCategoriaAtributos <= 0) {
+        echo json_encode(['estado' => true, 'atributos' => []], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    try {
+        $stmtAtributos = $conexion->prepare(
+            "SELECT id_atributo, codigo, nombre, ayuda, tipo_dato, unidad, opciones,
+                    obligatorio, orden
+             FROM atributo_categoria
+             WHERE id_categoria = ? AND estado = 'activo'
+             ORDER BY orden, id_atributo"
+        );
+        $stmtAtributos->bind_param('i', $idCategoriaAtributos);
+        $stmtAtributos->execute();
+        $resultadoAtributos = $stmtAtributos->get_result();
+        $atributos = [];
+        while ($atributo = $resultadoAtributos->fetch_assoc()) {
+            $atributo['obligatorio'] = (bool) $atributo['obligatorio'];
+            $atributos[] = $atributo;
+        }
+        $stmtAtributos->close();
+        echo json_encode(['estado' => true, 'atributos' => $atributos], JSON_UNESCAPED_UNICODE);
+    } catch (Throwable $error) {
+        error_log('DAOProductos consultarAtributos: ' . $error->getMessage());
+        http_response_code(500);
+        echo json_encode(['estado' => false, 'mensaje' => 'No se pudieron cargar las especificaciones.'], JSON_UNESCAPED_UNICODE);
+    }
+    $conexion->close();
+    exit;
 }
 
 if ($opcion == "guardar") {
@@ -44,25 +79,57 @@ if ($opcion == "guardar") {
         exit;
     }
 
-    $sql = "INSERT INTO producto (nombre, descripcion, id_categoria, alto_cm, ancho_cm, profundidad_cm, peso_kg, material, stock_minimo)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $conexion->prepare($sql);
-    $stmt->bind_param("ssisssssi", $nombre, $descripcion, $idcategoria, $alto, $ancho, $profundidad, $peso, $material, $stockminimo);
+    $stmtCategoria = $conexion->prepare(
+        "SELECT margen_ganancia FROM categoria WHERE id_categoria = ? AND estado = 'activo' LIMIT 1"
+    );
+    $stmtCategoria->bind_param('i', $idcategoria);
+    $stmtCategoria->execute();
+    $categoriaProducto = $stmtCategoria->get_result()->fetch_assoc();
+    $stmtCategoria->close();
+    if (!$categoriaProducto) {
+        echo json_encode(['estado' => false, 'mensaje' => 'La subcategoría seleccionada no está activa.'], JSON_UNESCAPED_UNICODE);
+        $conexion->close();
+        exit;
+    }
+    $margenInicial = (float) $categoriaProducto['margen_ganancia'];
 
-    if ($stmt->execute()) {
+    $validacionEspecificaciones = validarEspecificacionesProducto(
+        $conexion,
+        (int) $idcategoria,
+        $_POST['especificaciones'] ?? []
+    );
+    if ($validacionEspecificaciones['error'] !== null) {
         echo json_encode([
-            "estado"  => true,
-            "mensaje" => "Datos Guardados Correctamente"
+            'estado' => false,
+            'mensaje' => $validacionEspecificaciones['error']
         ], JSON_UNESCAPED_UNICODE);
-    } else {
-        echo json_encode([
-            "estado"  => false,
-            "mensaje" => "Error al guardar los datos"
-        ], JSON_UNESCAPED_UNICODE);
+        $conexion->close();
+        exit;
     }
 
-    $stmt->close();
+    $conexion->begin_transaction();
+    try {
+        $sql = "INSERT INTO producto (nombre, descripcion, id_categoria, alto_cm, ancho_cm, profundidad_cm, peso_kg, material, stock_minimo, margen_ganancia)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conexion->prepare($sql);
+        $stmt->bind_param("ssisssssid", $nombre, $descripcion, $idcategoria, $alto, $ancho, $profundidad, $peso, $material, $stockminimo, $margenInicial);
+        $stmt->execute();
+        $idProductoNuevo = (int) $conexion->insert_id;
+        $stmt->close();
+        guardarEspecificacionesProducto($conexion, $idProductoNuevo, $validacionEspecificaciones['valores']);
+        $conexion->commit();
+        echo json_encode([
+            'estado' => true,
+            'mensaje' => 'Datos guardados correctamente.'
+        ], JSON_UNESCAPED_UNICODE);
+    } catch (Throwable $error) {
+        $conexion->rollback();
+        error_log('DAOProductos guardar: ' . $error->getMessage());
+        echo json_encode(['estado' => false, 'mensaje' => 'No se pudo guardar el producto.'], JSON_UNESCAPED_UNICODE);
+    }
+
     $conexion->close();
+    exit;
 }
 
 if ($opcion == "modificar") {
@@ -88,24 +155,68 @@ if ($opcion == "modificar") {
         exit;
     }
 
-    $sql = "UPDATE producto SET nombre=?, descripcion=?, id_categoria=?, alto_cm=?, ancho_cm=?, profundidad_cm=?, peso_kg=?, material=?, stock_minimo=? WHERE id_producto=?";
-    $stmt = $conexion->prepare($sql);
-    $stmt->bind_param("ssisssssii", $nombre, $descripcion, $idcategoria, $alto, $ancho, $profundidad, $peso, $material, $stockminimo, $idproducto);
-
-    if ($stmt->execute()) {
+    $stmtAnterior = $conexion->prepare('SELECT id_categoria FROM producto WHERE id_producto = ? LIMIT 1');
+    $stmtAnterior->bind_param('i', $idproducto);
+    $stmtAnterior->execute();
+    $productoAnterior = $stmtAnterior->get_result()->fetch_assoc();
+    $stmtAnterior->close();
+    if (!$productoAnterior) {
         echo json_encode([
-            "estado"  => true,
-            "mensaje" => "Datos Modificados Correctamente"
+            'estado' => false,
+            'mensaje' => 'El producto ya no existe.'
         ], JSON_UNESCAPED_UNICODE);
-    } else {
-        echo json_encode([
-            "estado"  => false,
-            "mensaje" => "Error al modificar los datos"
-        ], JSON_UNESCAPED_UNICODE);
+        $conexion->close();
+        exit;
     }
 
-    $stmt->close();
+    $validacionEspecificaciones = validarEspecificacionesProducto(
+        $conexion,
+        (int) $idcategoria,
+        $_POST['especificaciones'] ?? []
+    );
+    if ($validacionEspecificaciones['error'] !== null) {
+        echo json_encode([
+            'estado' => false,
+            'mensaje' => $validacionEspecificaciones['error']
+        ], JSON_UNESCAPED_UNICODE);
+        $conexion->close();
+        exit;
+    }
+
+    $conexion->begin_transaction();
+    try {
+        $sql = "UPDATE producto
+                SET nombre=?, descripcion=?, id_categoria=?, alto_cm=?, ancho_cm=?, profundidad_cm=?, peso_kg=?, material=?, stock_minimo=?
+                WHERE id_producto=?";
+        $stmt = $conexion->prepare($sql);
+        $stmt->bind_param("ssisssssii", $nombre, $descripcion, $idcategoria, $alto, $ancho, $profundidad, $peso, $material, $stockminimo, $idproducto);
+        $stmt->execute();
+        $stmt->close();
+
+        if ((int) $productoAnterior['id_categoria'] !== (int) $idcategoria) {
+            $stmtLimpiar = $conexion->prepare('DELETE FROM producto_especificacion WHERE id_producto = ?');
+            $stmtLimpiar->bind_param('i', $idproducto);
+        } else {
+            $stmtLimpiar = $conexion->prepare(
+                "DELETE pe FROM producto_especificacion AS pe
+                 INNER JOIN atributo_categoria AS ac ON ac.id_atributo = pe.id_atributo
+                 WHERE pe.id_producto = ? AND ac.id_categoria = ? AND ac.estado = 'activo'"
+            );
+            $stmtLimpiar->bind_param('ii', $idproducto, $idcategoria);
+        }
+        $stmtLimpiar->execute();
+        $stmtLimpiar->close();
+        guardarEspecificacionesProducto($conexion, (int) $idproducto, $validacionEspecificaciones['valores']);
+        $conexion->commit();
+        echo json_encode(['estado' => true, 'mensaje' => 'Producto y especificaciones actualizados correctamente.'], JSON_UNESCAPED_UNICODE);
+    } catch (Throwable $error) {
+        $conexion->rollback();
+        error_log('DAOProductos modificar: ' . $error->getMessage());
+        echo json_encode(['estado' => false, 'mensaje' => 'No se pudieron actualizar los datos del producto.'], JSON_UNESCAPED_UNICODE);
+    }
+
     $conexion->close();
+    exit;
 }
 
 if ($opcion == "asignarMargen") {
@@ -260,7 +371,8 @@ if ($opcion == "consultarIndividual") {
     require_once "../conexion.php";
 
     $sql = "SELECT p.id_producto, p.nombre, p.descripcion, p.id_categoria,
-                   c.nombre AS categoria, p.alto_cm, p.ancho_cm, p.profundidad_cm,
+                   c.nombre AS categoria, c.id_padre AS categoria_id_padre, c.estado AS estado_categoria,
+                   p.alto_cm, p.ancho_cm, p.profundidad_cm,
                    p.peso_kg, p.material, p.precio_venta, p.stock_minimo, p.estado
             FROM producto AS p
             INNER JOIN categoria AS c ON c.id_categoria = p.id_categoria
@@ -272,6 +384,18 @@ if ($opcion == "consultarIndividual") {
 
     if ($resultado->num_rows > 0) {
         $datos = $resultado->fetch_assoc();
+        $stmtEspecificaciones = $conexion->prepare(
+            'SELECT id_atributo, valor FROM producto_especificacion WHERE id_producto = ?'
+        );
+        $stmtEspecificaciones->bind_param('i', $idproducto);
+        $stmtEspecificaciones->execute();
+        $resultadoEspecificaciones = $stmtEspecificaciones->get_result();
+        $especificaciones = [];
+        while ($especificacion = $resultadoEspecificaciones->fetch_assoc()) {
+            $especificaciones[(string) $especificacion['id_atributo']] = $especificacion['valor'];
+        }
+        $stmtEspecificaciones->close();
+
         echo json_encode([
             "estado" => true,
             "datos"  => [
@@ -280,6 +404,8 @@ if ($opcion == "consultarIndividual") {
                 "descripcion"  => $datos["descripcion"],
                 "id_categoria" => $datos["id_categoria"],
                 "categoria"    => $datos["categoria"],
+                "categoria_id_padre" => $datos["categoria_id_padre"],
+                "estado_categoria" => $datos["estado_categoria"],
                 "alto"         => $datos["alto_cm"],
                 "ancho"        => $datos["ancho_cm"],
                 "profundidad"  => $datos["profundidad_cm"],
@@ -287,7 +413,8 @@ if ($opcion == "consultarIndividual") {
                 "material"     => $datos["material"],
                 "precio_venta" => $datos["precio_venta"],
                 "stock_minimo" => $datos["stock_minimo"],
-                "estado"       => $datos["estado"]
+                "estado"       => $datos["estado"],
+                "especificaciones" => $especificaciones
             ]
         ], JSON_UNESCAPED_UNICODE);
     } else {
@@ -333,6 +460,87 @@ function validarProducto($nombre, $idcategoria, $descripcion, $material, $alto, 
         return "El stock mínimo debe ser un entero mayor o igual a 0";
     }
     return null;
+}
+
+function validarEspecificacionesProducto($conexion, int $idCategoria, $enviadas): array {
+    if (!is_array($enviadas)) {
+        return ['error' => 'Las especificaciones enviadas no son válidas.', 'valores' => []];
+    }
+
+    $stmtAtributos = $conexion->prepare(
+        "SELECT id_atributo, nombre, tipo_dato, opciones, obligatorio
+         FROM atributo_categoria
+         WHERE id_categoria = ? AND estado = 'activo'"
+    );
+    $stmtAtributos->bind_param('i', $idCategoria);
+    $stmtAtributos->execute();
+    $resultadoAtributos = $stmtAtributos->get_result();
+    $atributos = [];
+    while ($atributo = $resultadoAtributos->fetch_assoc()) {
+        $atributos[(string) $atributo['id_atributo']] = $atributo;
+    }
+    $stmtAtributos->close();
+
+    foreach ($enviadas as $idAtributo => $valor) {
+        if (!ctype_digit((string) $idAtributo) || !isset($atributos[(string) $idAtributo])) {
+            return ['error' => 'Una especificación no pertenece a la subcategoría seleccionada.', 'valores' => []];
+        }
+        if (!is_scalar($valor)) {
+            return ['error' => 'El valor de una especificación no es válido.', 'valores' => []];
+        }
+    }
+
+    $valores = [];
+    foreach ($atributos as $idAtributo => $atributo) {
+        $valor = trim((string) ($enviadas[$idAtributo] ?? ''));
+        $obligatorio = (bool) $atributo['obligatorio'];
+        if ($valor === '') {
+            if ($obligatorio) {
+                return ['error' => 'Completa el campo "' . $atributo['nombre'] . '".', 'valores' => []];
+            }
+            continue;
+        }
+
+        $tipo = $atributo['tipo_dato'];
+        if ($tipo === 'texto' && mb_strlen($valor, 'UTF-8') > 500) {
+            return ['error' => 'El campo "' . $atributo['nombre'] . '" no puede superar 500 caracteres.', 'valores' => []];
+        }
+        if ($tipo === 'numero' && preg_match('/^\d{1,12}(?:\.\d{1,4})?$/', $valor) !== 1) {
+            return ['error' => 'El campo "' . $atributo['nombre'] . '" debe ser un número mayor o igual a cero.', 'valores' => []];
+        }
+        if ($tipo === 'booleano' && !in_array($valor, ['0', '1'], true)) {
+            return ['error' => 'Selecciona Sí o No en el campo "' . $atributo['nombre'] . '".', 'valores' => []];
+        }
+        if ($tipo === 'opcion') {
+            $opciones = json_decode((string) $atributo['opciones'], true);
+            if (!is_array($opciones) || !in_array($valor, $opciones, true)) {
+                return ['error' => 'Selecciona una opción válida en el campo "' . $atributo['nombre'] . '".', 'valores' => []];
+            }
+        }
+
+        $valores[] = ['id_atributo' => (int) $idAtributo, 'valor' => $valor];
+    }
+
+    return ['error' => null, 'valores' => $valores];
+}
+
+function guardarEspecificacionesProducto($conexion, int $idProducto, array $valores): void {
+    if ($valores === []) {
+        return;
+    }
+
+    $stmt = $conexion->prepare(
+        'INSERT INTO producto_especificacion (id_producto, id_atributo, valor)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE valor = VALUES(valor)'
+    );
+    foreach ($valores as $especificacion) {
+        $idAtributo = (int) $especificacion['id_atributo'];
+        $valor = (string) $especificacion['valor'];
+        $stmt->bind_param('iis', $idProducto, $idAtributo, $valor);
+        $stmt->execute();
+    }
+    $stmt->close();
 }
 
 function productoDuplicado($conexion, $nombre, $idcategoria, $idexcluir) {
