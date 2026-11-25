@@ -57,16 +57,16 @@ include_once(__DIR__ . '/../config.php');?>
               </div>
 
               <!-- Fila 3: Dimensiones -->
-              <div class="row mb-3">
-                <div class="col-md-4">
+              <div class="row mb-3" data-grupo-medidas="1">
+                <div class="col-md-4" data-campo-base="alto_cm">
                   <label for="alto_cm" class="form-label">Alto (cm)</label>
                   <input type="number" step="0.01" min="0" class="form-control" id="alto_cm" name="alto_cm" placeholder="0.00" autocomplete="off">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" data-campo-base="ancho_cm">
                   <label for="ancho_cm" class="form-label">Ancho (cm)</label>
                   <input type="number" step="0.01" min="0" class="form-control" id="ancho_cm" name="ancho_cm" placeholder="0.00" autocomplete="off">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" data-campo-base="profundidad_cm">
                   <label for="profundidad_cm" class="form-label">Profundidad (cm)</label>
                   <input type="number" step="0.01" min="0" class="form-control" id="profundidad_cm" name="profundidad_cm" placeholder="0.00" autocomplete="off">
                 </div>
@@ -74,11 +74,11 @@ include_once(__DIR__ . '/../config.php');?>
 
               <!-- Fila 4: Peso, Material y Stock Mínimo -->
               <div class="row mb-3">
-                <div class="col-md-4">
+                <div class="col-md-4" data-campo-base="peso_kg">
                   <label for="peso_kg" class="form-label">Peso (Kg)</label>
                   <input type="number" step="0.01" min="0" class="form-control" id="peso_kg" name="peso_kg" placeholder="0.00" autocomplete="off">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" data-campo-base="material">
                   <label for="material" class="form-label">Material</label>
                   <input type="text" class="form-control" id="material" name="material" maxlength="50" placeholder="Ej. Plástico / Aluminio" autocomplete="off">
                 </div>

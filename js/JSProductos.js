@@ -85,6 +85,47 @@ function limpiarEspecificaciones() {
   }
 }
 
+function aplicarCamposBase(configuracion, conservarDatosExistentes = false) {
+  const campos = {
+    alto_cm: alto,
+    ancho_cm: ancho,
+    profundidad_cm: profundidad,
+    peso_kg: pesoKg,
+    material
+  };
+  let hayDimensionVisible = false;
+
+  Object.entries(campos).forEach(([codigo, campo]) => {
+    const clave = `mostrar_${codigo}`;
+    const mostrarPorCategoria = configuracion && Object.prototype.hasOwnProperty.call(configuracion, clave)
+      ? Boolean(configuracion[clave])
+      : true;
+    const conservarValor = conservarDatosExistentes && campo.value.trim() !== "";
+    const visible = mostrarPorCategoria || conservarValor;
+    const contenedor = campo.closest("[data-campo-base]");
+
+    if (contenedor) contenedor.classList.toggle("d-none", !visible);
+    campo.disabled = !visible;
+    if (!visible) {
+      campo.value = "";
+      sinMarca(campo);
+    }
+    if (["alto_cm", "ancho_cm", "profundidad_cm"].includes(codigo) && visible) {
+      hayDimensionVisible = true;
+    }
+  });
+
+  const filaDimensiones = document.querySelector("[data-grupo-medidas]");
+  if (filaDimensiones) filaDimensiones.classList.toggle("d-none", !hayDimensionVisible);
+}
+
+function limpiarCamposBase() {
+  [alto, ancho, profundidad, pesoKg, material].forEach((campo) => {
+    campo.value = "";
+    sinMarca(campo);
+  });
+}
+
 function crearCampoEspecificacion(atributo, valores = {}) {
   const columna = document.createElement("div");
   columna.className = "col-md-6";
@@ -148,10 +189,13 @@ function crearCampoEspecificacion(atributo, valores = {}) {
   camposEspecificaciones.appendChild(columna);
 }
 
-async function cargarAtributosCategoria(idCategoria, valores = {}) {
+async function cargarAtributosCategoria(idCategoria, valores = {}, conservarDatosBase = false) {
   const numeroSolicitud = ++solicitudAtributos;
   limpiarEspecificaciones();
-  if (!idCategoria || idCategoria === "0") return;
+  if (!idCategoria || idCategoria === "0") {
+    aplicarCamposBase(null, false);
+    return;
+  }
 
   ayudaEspecificaciones.textContent = "Cargando campos de la subcategoría...";
   const datos = new FormData();
@@ -166,6 +210,7 @@ async function cargarAtributosCategoria(idCategoria, valores = {}) {
     if (!resultado.estado || !Array.isArray(resultado.atributos)) {
       throw new Error(resultado.mensaje || "No se pudieron leer los atributos");
     }
+    aplicarCamposBase(resultado.campos_base ?? null, conservarDatosBase);
 
     if (resultado.atributos.length === 0) {
       ayudaEspecificaciones.textContent = "Esta categoría aún no tiene especificaciones adicionales definidas.";
@@ -176,6 +221,7 @@ async function cargarAtributosCategoria(idCategoria, valores = {}) {
   } catch (error) {
     if (numeroSolicitud !== solicitudAtributos) return;
     console.error("Error al cargar especificaciones:", error);
+    aplicarCamposBase(null, conservarDatosBase);
     ayudaEspecificaciones.textContent = "No se pudieron cargar las especificaciones de esta subcategoría.";
   }
 }
@@ -205,6 +251,7 @@ function limpiarCampos() {
   stockMinimo.value = "0";
   categoria.value = "0";
   limpiarEspecificaciones();
+  aplicarCamposBase(null, false);
   [nombre, categoria, material, descripcion, alto, ancho, profundidad, pesoKg, stockMinimo]
     .forEach(sinMarca);
   nombre.focus();
@@ -218,6 +265,7 @@ if (formulario) {
   nombre.addEventListener("blur", () => validarCampo(nombre));
   categoria.addEventListener("change", async function () {
     validarCategoria();
+    limpiarCamposBase();
     await cargarAtributosCategoria(categoria.value);
   });
 
@@ -357,7 +405,7 @@ async function cargarProducto(idProducto) {
   stockMinimo.value = d.stock_minimo ?? 0;
 
   categoria.value = d.id_categoria;
-  await cargarAtributosCategoria(d.id_categoria, d.especificaciones ?? {});
+  await cargarAtributosCategoria(d.id_categoria, d.especificaciones ?? {}, true);
   if (categoria.value !== String(d.id_categoria)) {
     const etiquetaExtra = d.estado_categoria === "inactivo"
       ? " (inactiva)"
