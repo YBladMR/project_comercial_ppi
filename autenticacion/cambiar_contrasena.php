@@ -57,7 +57,7 @@ $tokenCsrf = obtener_token_csrf();
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cambiar contraseña - Comercial X</title>
+  <title>Cambiar contraseña - Casa Aurelia</title>
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>vendors/simplebar/css/simplebar.css">
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/style.css">
   <script src="<?php echo BASE_URL; ?>js/config.js"></script>

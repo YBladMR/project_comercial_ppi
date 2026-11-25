@@ -70,7 +70,7 @@ function notificar(tipo, mensaje) {
       <div class="toast-body d-flex align-items-center gap-2">
         <i class="bi ${iconos[tipo] || iconos.info} fs-5"></i>
         <div>
-          <strong class="d-block">${titulos[tipo] || "Comercial X"}</strong>
+          <strong class="d-block">${titulos[tipo] || "Casa Aurelia"}</strong>
           <span>${mensaje}</span>
         </div>
       </div>

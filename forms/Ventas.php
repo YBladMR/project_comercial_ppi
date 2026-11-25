@@ -9,7 +9,7 @@ $titulo_pagina = "Registrar Venta";
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Venta - Comercial X</title>
+  <title>Venta - Casa Aurelia</title>
   <link rel="stylesheet" href="../vendors/simplebar/css/simplebar.css">
   <link rel="stylesheet" href="../css/vendors/simplebar.css">
   <link rel="stylesheet" href="../css/style.css">
@@ -187,7 +187,7 @@ $titulo_pagina = "Registrar Venta";
   </div>
 
   <footer class="footer px-4">
-    <div>Comercial X &copy; 2026.</div>
+    <div>Casa Aurelia &copy; 2026.</div>
   </footer>
 
   </div> <!-- Cierra el wrapper de la Barra_Lateral.php -->

@@ -9,7 +9,7 @@ include_once __DIR__ . '/../config.php';
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?php echo htmlspecialchars($titulo_pagina, ENT_QUOTES, 'UTF-8'); ?> - Comercial X</title>
+  <title><?php echo htmlspecialchars($titulo_pagina, ENT_QUOTES, 'UTF-8'); ?> - Casa Aurelia</title>
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>vendors/simplebar/css/simplebar.css">
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/style.css">
   <script src="<?php echo BASE_URL; ?>js/config.js"></script>
@@ -218,7 +218,7 @@ include_once __DIR__ . '/../config.php';
       </section>
     </main>
   </div>
-  <footer class="footer px-4"><div>Comercial X &copy; 2026.</div></footer>
+  <footer class="footer px-4"><div>Casa Aurelia &copy; 2026.</div></footer>
   </div>
   <script src="<?php echo BASE_URL; ?>vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
   <script src="<?php echo BASE_URL; ?>vendors/simplebar/js/simplebar.min.js"></script>

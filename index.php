@@ -11,7 +11,7 @@ include_once(__DIR__ . '/config.php');
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?php echo $titulo_pagina; ?> - Comercial X</title>
+  <title><?php echo $titulo_pagina; ?> - Casa Aurelia</title>
   
   <!-- Estilos CoreUI y Simplebar locales -->
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>vendors/simplebar/css/simplebar.css">
@@ -43,7 +43,7 @@ include_once(__DIR__ . '/config.php');
           <?php endif; ?>
           <div class="card mb-4">
             <div class="card-header fw-bold">
-              Bienvenido al Sistema - Comercial X
+              Bienvenido al Sistema - Casa Aurelia
             </div>
             <div class="card-body">
               <p class="text-medium-emphasis">Selecciona una opción del menú lateral para comenzar a gestionar el inventario, ventas, compras o ubicaciones.</p>
@@ -57,7 +57,7 @@ include_once(__DIR__ . '/config.php');
 
   <!-- Pie de página -->
   <footer class="footer px-4">
-    <div>Comercial X &copy; 2026.</div>
+    <div>Casa Aurelia &copy; 2026.</div>
   </footer>
 
   </div> <!-- Cierra el wrapper abierto en Barra_Lateral.php -->

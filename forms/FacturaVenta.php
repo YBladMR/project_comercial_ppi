@@ -82,7 +82,7 @@ $estadoFactura = [
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?php echo $venta ? 'Factura ' . escaparFactura($codigoFactura) : 'Factura de venta'; ?> - Comercial X</title>
+  <title><?php echo $venta ? 'Factura ' . escaparFactura($codigoFactura) : 'Factura de venta'; ?> - Casa Aurelia</title>
   <style>
     @page { size: letter; margin: 8mm; }
     * { box-sizing: border-box; }
@@ -144,7 +144,7 @@ $estadoFactura = [
           <div class="tipo-copia"><?php echo escaparFactura($tipoCopia); ?></div>
           <header class="encabezado">
             <div>
-              <h1>COMERCIAL X</h1>
+              <h1>Casa Aurelia</h1>
               <div>Factura de venta</div>
             </div>
             <div class="folio">

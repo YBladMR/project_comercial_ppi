@@ -14,7 +14,7 @@ $titulo_pagina = 'Detalle del crédito';
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Detalle del crédito - Comercial X</title>
+  <title>Detalle del crédito - Casa Aurelia</title>
   <link rel="stylesheet" href="../vendors/simplebar/css/simplebar.css">
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/detalle-credito.css?v=<?php echo filemtime(__DIR__ . '/../css/detalle-credito.css'); ?>">
@@ -92,7 +92,7 @@ $titulo_pagina = 'Detalle del crédito';
       </div>
     </div>
   </div>
-  <footer class="footer px-4"><div>Comercial X &copy; 2026.</div></footer>
+  <footer class="footer px-4"><div>Casa Aurelia &copy; 2026.</div></footer>
   </div>
   <script src="../vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
   <script src="../vendors/simplebar/js/simplebar.min.js"></script>
