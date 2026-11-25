@@ -85,7 +85,7 @@ $titulo_pagina = 'Detalle del crédito';
             <div id="ayudaTipoPago" class="form-text mb-3">Puedes registrar un abono menor a la cuota. El excedente, después de intereses y mora acumulados, reduce capital.</div>
             <div class="dc-regla-pago"><i class="bi bi-info-circle"></i><span>El pago se aplica primero a mora acumulada, luego a interés corriente y finalmente a capital. No se cobra interés sobre intereses.</span></div>
             <button id="btnRegistrarPago" class="btn btn-primary w-100 mt-3" type="submit"><i class="bi bi-cash-coin me-1"></i> Registrar pago</button>
-            <div class="form-text mt-2">No se genera ticket. Cada movimiento queda en el estado de cuenta.</div>
+            <div class="form-text mt-2">Al guardar el pago, se abrirá el ticket para imprimirlo o guardarlo en PDF.</div>
           </form>
         </aside>
         <?php endif; ?>
