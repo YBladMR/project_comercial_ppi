@@ -1,6 +1,7 @@
 <?php
 include_once(__DIR__ . '/../config.php');
 $id_cliente = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: '';
+$desdeVenta = ($_GET['retorno'] ?? '') === 'venta' && !$id_cliente;
 $titulo_pagina = $id_cliente ? 'Modificar cliente' : 'Registrar cliente';
 ?>
 <!DOCTYPE html>
@@ -65,13 +66,17 @@ $titulo_pagina = $id_cliente ? 'Modificar cliente' : 'Registrar cliente';
                 <label for="correo_electronico" class="form-label">Correo electrónico *</label>
                 <input type="email" class="form-control" id="correo_electronico" name="correo_electronico" maxlength="100" required autocomplete="email">
               </div>
-              <div class="col-12 col-md-4">
-                <label for="estado" class="form-label">Estado *</label>
-                <select class="form-select" id="estado" name="estado" required>
-                  <option value="activo">Activo</option>
-                  <option value="inactivo">Inactivo</option>
-                </select>
-              </div>
+              <?php if ($desdeVenta): ?>
+                <input type="hidden" id="estado" name="estado" value="activo">
+              <?php else: ?>
+                <div class="col-12 col-md-4">
+                  <label for="estado" class="form-label">Estado *</label>
+                  <select class="form-select" id="estado" name="estado" required>
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                  </select>
+                </div>
+              <?php endif; ?>
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4">
