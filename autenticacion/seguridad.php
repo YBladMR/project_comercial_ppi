@@ -212,7 +212,7 @@ function mostrar_acceso_denegado(): void
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Acceso denegado - Comercial X</title>
+      <title>Acceso denegado - Casa Aurelia</title>
       <link rel="stylesheet" href="<?= $baseUrl ?>vendors/simplebar/css/simplebar.css">
       <link rel="stylesheet" href="<?= $baseUrl ?>css/vendors/simplebar.css">
       <link rel="stylesheet" href="<?= $baseUrl ?>css/style.css">
@@ -233,7 +233,7 @@ function mostrar_acceso_denegado(): void
           </div>
         </div>
       </main>
-      <footer class="footer px-4"><div>Comercial X &copy; 2026.</div></footer>
+      <footer class="footer px-4"><div>Casa Aurelia &copy; 2026.</div></footer>
       </div>
       <script src="<?= $baseUrl ?>vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
       <script src="<?= $baseUrl ?>vendors/simplebar/js/simplebar.min.js"></script>

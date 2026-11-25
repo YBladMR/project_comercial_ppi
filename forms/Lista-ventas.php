@@ -8,7 +8,7 @@ $titulo_pagina = "Lista de Ventas";
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lista de Ventas - Comercial X</title>
+  <title>Lista de Ventas - Casa Aurelia</title>
   <link rel="stylesheet" href="../vendors/simplebar/css/simplebar.css">
   <link rel="stylesheet" href="../css/style.css">
   <script src="../js/config.js"></script>
@@ -270,7 +270,7 @@ $titulo_pagina = "Lista de Ventas";
     </div>
 
     <footer class="footer px-4">
-      <div>Comercial X &copy; 2026.</div>
+      <div>Casa Aurelia &copy; 2026.</div>
     </footer>
 
     </div> <!-- cierra <div class="wrapper"> que se abrio en Barra_Lateral.php -->

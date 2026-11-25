@@ -391,7 +391,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const nuevoEstado = producto.estado === "activo" ? "inactivo" : "activo";
 
         const confirmacion = await Swal.fire({
-            title: "ComercialX",
+            title: "Casa Aurelia",
             text: nuevoEstado === "inactivo"
                 ? `¿Confirma dar de baja el producto "${producto.nombre}"?`
                 : `¿Confirma reactivar el producto "${producto.nombre}"?`,
@@ -426,18 +426,18 @@ document.addEventListener("DOMContentLoaded", async () => {
                 await Swal.fire({
                     position: "top-end",
                     icon: "success",
-                    title: "ComercialX",
+                    title: "Casa Aurelia",
                     text: resultado.mensaje,
                     showConfirmButton: false,
                     timer: 1500
                 });
                 await cargarDatos();
             } else {
-                Swal.fire({ icon: "error", title: "ComercialX", text: resultado.mensaje });
+                Swal.fire({ icon: "error", title: "Casa Aurelia", text: resultado.mensaje });
             }
         } catch (error) {
             console.error("Error al cambiar el estado:", error);
-            Swal.fire({ icon: "error", title: "ComercialX", text: "No se pudo cambiar el estado" });
+            Swal.fire({ icon: "error", title: "Casa Aurelia", text: "No se pudo cambiar el estado" });
         }
     }
 

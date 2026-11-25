@@ -7,7 +7,7 @@ include_once(__DIR__ . '/../config.php');?>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Producto - Comercial X</title>
+  <title>Producto - Casa Aurelia</title>
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>vendors/simplebar/css/simplebar.css">
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/vendors/simplebar.css">
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/style.css">
@@ -110,7 +110,7 @@ include_once(__DIR__ . '/../config.php');?>
     </div>
 
     <footer class="footer px-4">
-      <div>Comercial X &copy; 2026.</div>
+      <div>Casa Aurelia &copy; 2026.</div>
     </footer>
 
   </div> <!-- Cierra el wrapper de la Barra_Lateral.php -->

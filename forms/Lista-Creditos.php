@@ -8,7 +8,7 @@ $titulo_pagina = 'Créditos';
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Créditos - Comercial X</title>
+  <title>Créditos - Casa Aurelia</title>
   <link rel="stylesheet" href="../vendors/simplebar/css/simplebar.css">
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/lista-creditos.css?v=<?php echo filemtime(__DIR__ . '/../css/lista-creditos.css'); ?>">
@@ -71,7 +71,7 @@ $titulo_pagina = 'Créditos';
       </section>
     </div>
   </div>
-  <footer class="footer px-4"><div>Comercial X &copy; 2026.</div></footer>
+  <footer class="footer px-4"><div>Casa Aurelia &copy; 2026.</div></footer>
   </div>
   <script src="../vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
   <script src="../vendors/simplebar/js/simplebar.min.js"></script>

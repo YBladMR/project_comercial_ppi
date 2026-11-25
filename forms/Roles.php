@@ -8,7 +8,7 @@ $titulo_pagina = 'Administración de roles';
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?php echo htmlspecialchars($titulo_pagina, ENT_QUOTES, 'UTF-8'); ?> - Comercial X</title>
+  <title><?php echo htmlspecialchars($titulo_pagina, ENT_QUOTES, 'UTF-8'); ?> - Casa Aurelia</title>
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>vendors/simplebar/css/simplebar.css">
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous">
@@ -55,7 +55,7 @@ $titulo_pagina = 'Administración de roles';
       </div>
     </div>
   </div>
-  <footer class="footer px-4"><div>Comercial X &copy; 2026.</div></footer>
+  <footer class="footer px-4"><div>Casa Aurelia &copy; 2026.</div></footer>
   </div>
   <script src="<?php echo BASE_URL; ?>vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
   <script src="<?php echo BASE_URL; ?>vendors/simplebar/js/simplebar.min.js"></script>
