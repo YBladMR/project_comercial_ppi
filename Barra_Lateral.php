@@ -94,11 +94,11 @@ requerir_autenticacion();
              alt="Casa Aurelia Muebles"
              class="sidebar-brand-full sidebar-logo">
       </a>
-      <?php /* Opcional: icono pequeño para cuando el sidebar está colapsado
+      <?php /* Opcional: icono pequeño para cuando el sidebar está colapsado 
       <img src="<?php echo BASE_URL; ?>assets/img/logo-icono.png"
            alt="Casa Aurelia"
-           class="sidebar-brand-narrow" width="32" height="32">
-      */ ?>
+           class="sidebar-brand-narrow" width="32" height="32">*/
+      ?>
     </div>
     <button class="btn-close d-lg-none" type="button" data-coreui-theme="dark" aria-label="Close" onclick="coreui.Sidebar.getInstance(document.querySelector('#sidebar')).toggle()"></button>
   </div>
