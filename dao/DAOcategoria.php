@@ -20,7 +20,7 @@ if (in_array($opcion, $operacionesGestionCategoria, true)) {
 }
 
 if ($opcion == "guardar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $errorValidacion = validarCategoria($conexion, $nombre, $descripcion, $idPadre);
     if ($errorValidacion !== null) {
@@ -41,7 +41,7 @@ if ($opcion == "guardar") {
 }
 
 if ($opcion == "modificar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $id = (int) $id;
     $stmt = $conexion->prepare("SELECT estado FROM categoria WHERE id_categoria=?");
@@ -74,7 +74,7 @@ if ($opcion == "modificar") {
     $conexion->close();
 }
 if ($opcion == "eliminar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     if (!ctype_digit((string) $id) || (int) $id <= 0) {
         echo json_encode(["estado" => false, "mensaje" => "Categoría no válida"], JSON_UNESCAPED_UNICODE);
@@ -173,7 +173,7 @@ if ($opcion == "eliminar") {
 // }
 
 if ($opcion == "consultar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     try {
         $sql = "SELECT c.id_categoria, c.id_padre, c.nombre, c.descripcion, c.estado,
@@ -226,7 +226,7 @@ if ($opcion == "consultar") {
 
 
 if ($opcion == "consultarPadres") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "SELECT id_categoria, nombre FROM categoria WHERE id_padre IS NULL ORDER BY nombre";
     $resultado = $conexion->query($sql);
@@ -247,7 +247,7 @@ if ($opcion == "consultarPadres") {
 }
 
 if ($opcion == "consultarIndividual") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "SELECT id_categoria, id_padre, nombre, descripcion, estado FROM categoria WHERE id_categoria=?";
     $stmt = $conexion->prepare($sql);
@@ -292,7 +292,7 @@ if ($opcion == "cambiarEstado") {
         exit;
     }
 
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     try {
         $conexion->begin_transaction();

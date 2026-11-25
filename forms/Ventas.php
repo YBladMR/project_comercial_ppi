@@ -22,7 +22,7 @@ $titulo_pagina = "Registrar Venta";
 
 <body data-csrf-token="<?php echo htmlspecialchars(obtener_token_csrf(), ENT_QUOTES, 'UTF-8'); ?>">
 
-  <?php include '../Barra_Lateral.php'; ?>
+  <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
 
   <div class="body flex-grow-1 px-3">
     <div class="container-lg">
@@ -194,8 +194,8 @@ $titulo_pagina = "Registrar Venta";
 
   <script src="../vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
   <script src="../vendors/simplebar/js/simplebar.min.js"></script>
-  <script src="../js/Notificaciones.js?v=<?php echo filemtime('../js/Notificaciones.js'); ?>"></script>
-  <script src="../js/JSVentas.js?v=<?php echo filemtime('../js/JSVentas.js'); ?>"></script>
+  <script src="../js/Notificaciones.js?v=<?php echo filemtime(__DIR__ . '/../js/Notificaciones.js'); ?>"></script>
+  <script src="../js/JSVentas.js?v=<?php echo filemtime(__DIR__ . '/../js/JSVentas.js'); ?>"></script>
 </body>
 
 </html>

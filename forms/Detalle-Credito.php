@@ -23,7 +23,7 @@ $titulo_pagina = 'Detalle del crédito';
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous">
 </head>
 <body data-id-credito="<?php echo (int) $idCredito; ?>" data-puede-pagar="<?php echo $puedeRegistrarPago ? '1' : '0'; ?>" data-csrf-token="<?php echo htmlspecialchars(obtener_token_csrf(), ENT_QUOTES, 'UTF-8'); ?>">
-  <?php include '../Barra_Lateral.php'; ?>
+  <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
   <div class="body flex-grow-1 px-3">
     <div class="container-fluid dc">
       <div class="dc-topline">

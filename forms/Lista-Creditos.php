@@ -17,7 +17,7 @@ $titulo_pagina = 'Créditos';
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous">
 </head>
 <body>
-  <?php include '../Barra_Lateral.php'; ?>
+  <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
   <div class="body flex-grow-1 px-3">
     <div class="container-fluid lc">
       <section class="lc-hero">

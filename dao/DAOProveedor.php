@@ -61,7 +61,7 @@ if ($opcion == "guardar") {
         responder(false, "Seleccione un estado");
     }
 
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "INSERT INTO proveedor
             (tipo_persona, nombre_razon_social, dui, nit, telefono, correo_electronico, direccion, estado)
@@ -89,7 +89,7 @@ if ($opcion == "modificar") {
         responder(false, "Seleccione un estado");
     }
 
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "UPDATE proveedor
             SET telefono=?, correo_electronico=?, direccion=?, estado=?
@@ -109,7 +109,7 @@ if ($opcion == "baja") {
         responder(false, "Proveedor no válido");
     }
 
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     // Baja lógica: conserva el historial de compras asociadas
     $sql = "UPDATE proveedor SET estado='inactivo' WHERE id_proveedor=?";
@@ -125,7 +125,7 @@ if ($opcion == "baja") {
 
 // Verifica si un DUI ya existe (para avisar al salir del campo)
 if ($opcion == "consultarDUI") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "SELECT dui FROM proveedor WHERE dui=?";
     $stmt = $conexion->prepare($sql);
@@ -141,7 +141,7 @@ if ($opcion == "consultarDUI") {
 
 // Verifica si un NIT ya existe
 if ($opcion == "consultarNIT") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "SELECT nit FROM proveedor WHERE nit=?";
     $stmt = $conexion->prepare($sql);
@@ -157,7 +157,7 @@ if ($opcion == "consultarNIT") {
 
 // Listado con filtros por nombre y estado
 if ($opcion == "consultar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     try {
         $sql = "SELECT id_proveedor, nombre_razon_social, tipo_persona, dui, nit,
@@ -204,7 +204,7 @@ if ($opcion == "consultar") {
 
 // Un solo proveedor, para llenar el formulario al modificar
 if ($opcion == "consultarIndividual") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "SELECT id_proveedor, nombre_razon_social, tipo_persona, dui, nit,
                    telefono, direccion, correo_electronico, fecha_registro, estado

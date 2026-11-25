@@ -44,7 +44,7 @@ $idUsuario = (int) $_SESSION['id_usuario'];
  * GUARDAR VENTA (cabecera + detalle + inventario + kardex)
  * ============================================================ */
 if ($opcion == "guardar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $lineas = json_decode($detalleJson, true);
 
@@ -366,7 +366,7 @@ if ($opcion == "guardar") {
  * ANULAR VENTA: se cancela completa y se devuelve todo al inventario
  * ============================================================ */
 if ($opcion == "anular") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     if (!ctype_digit((string) $idventa) || (int) $idventa <= 0) {
         responder(false, "Venta no válida");
@@ -456,7 +456,7 @@ if ($opcion == "anular") {
 
 // Clientes activos para el select del formulario
 if ($opcion == "buscarClientes") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $termino = trim($_POST['termino'] ?? '');
     if (strlen($termino) < 2) {
@@ -493,7 +493,7 @@ if ($opcion == "buscarClientes") {
 }
 
 if ($opcion == "consultarClientes") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "SELECT id_cliente, nombre, IFNULL(apellido, '') AS apellido, dui
             FROM cliente WHERE estado = 'activo' ORDER BY nombre, apellido";
@@ -515,7 +515,7 @@ if ($opcion == "consultarClientes") {
 
 // Productos activos con su existencia para el formulario de venta
 if ($opcion == "consultarProductos") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "SELECT p.id_producto, p.nombre, p.precio_venta, p.stock_minimo, IFNULL(i.existencia, 0) AS existencia
             FROM producto AS p
@@ -542,7 +542,7 @@ if ($opcion == "consultarProductos") {
 
 // Lista de ventas
 if ($opcion == "consultar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     try {
         $sql = "SELECT v.id_venta, v.fecha_hora,
@@ -588,7 +588,7 @@ if ($opcion == "consultar") {
 
 // Cabecera + detalle de una venta
 if ($opcion == "consultarDetalle") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $stmt = $conexion->prepare(
         "SELECT v.id_venta, v.fecha_hora,
