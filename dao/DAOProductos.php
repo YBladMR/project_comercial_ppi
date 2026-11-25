@@ -51,7 +51,33 @@ if ($opcion === 'consultarAtributos') {
             $atributos[] = $atributo;
         }
         $stmtAtributos->close();
-        echo json_encode(['estado' => true, 'atributos' => $atributos], JSON_UNESCAPED_UNICODE);
+
+        $stmtCamposBase = $conexion->prepare(
+            'SELECT mostrar_alto_cm, mostrar_ancho_cm, mostrar_profundidad_cm, mostrar_peso_kg, mostrar_material
+             FROM categoria_campo_base WHERE id_categoria = ? LIMIT 1'
+        );
+        $stmtCamposBase->bind_param('i', $idCategoriaAtributos);
+        $stmtCamposBase->execute();
+        $camposBase = $stmtCamposBase->get_result()->fetch_assoc();
+        $stmtCamposBase->close();
+        if (!$camposBase) {
+            $camposBase = [
+                'mostrar_alto_cm' => true,
+                'mostrar_ancho_cm' => true,
+                'mostrar_profundidad_cm' => true,
+                'mostrar_peso_kg' => true,
+                'mostrar_material' => true,
+            ];
+        } else {
+            foreach ($camposBase as $campo => $mostrar) {
+                $camposBase[$campo] = (bool) $mostrar;
+            }
+        }
+        echo json_encode([
+            'estado' => true,
+            'atributos' => $atributos,
+            'campos_base' => $camposBase,
+        ], JSON_UNESCAPED_UNICODE);
     } catch (Throwable $error) {
         error_log('DAOProductos consultarAtributos: ' . $error->getMessage());
         http_response_code(500);
