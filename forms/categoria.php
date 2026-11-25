@@ -29,7 +29,7 @@ include_once(__DIR__ . '/../config.php');?>
 
 <body>
 
-  <?php include '../Barra_Lateral.php'; ?>
+  <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
 
   <div class="body flex-grow-1 px-3">
     <div class="container-lg categoria-form-container">
@@ -85,8 +85,8 @@ include_once(__DIR__ . '/../config.php');?>
 
   <script src="<?php echo BASE_URL; ?>vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
   <script src="<?php echo BASE_URL; ?>vendors/simplebar/js/simplebar.min.js"></script>
-  <script src="<?php echo BASE_URL; ?>js/Notificaciones.js?v=<?php echo filemtime('../js/Notificaciones.js'); ?>"></script>
-  <script src="<?php echo BASE_URL; ?>js/JScategoria.js?v=<?php echo filemtime('../js/JScategoria.js'); ?>"></script>
+  <script src="<?php echo BASE_URL; ?>js/Notificaciones.js?v=<?php echo filemtime(__DIR__ . '/../js/Notificaciones.js'); ?>"></script>
+  <script src="<?php echo BASE_URL; ?>js/JScategoria.js?v=<?php echo filemtime(__DIR__ . '/../js/JScategoria.js'); ?>"></script>
 </body>
 
 </html> 

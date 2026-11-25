@@ -21,7 +21,7 @@ $titulo_pagina = $id_cliente ? 'Modificar cliente' : 'Registrar cliente';
   </style>
 </head>
 <body>
-  <?php include '../Barra_Lateral.php'; ?>
+  <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
 
   <div class="body flex-grow-1 px-3">
     <main class="container-lg cliente-formulario">

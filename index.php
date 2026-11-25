@@ -29,7 +29,7 @@ include_once(__DIR__ . '/config.php');
 <body>
 
   <!-- Barra lateral (Incluye la etiqueta <body> y el inicio del .wrapper internamente según tu estructura) -->
-  <?php include 'Barra_Lateral.php'; ?>
+  <?php include __DIR__ . '/Barra_Lateral.php'; ?>
 
   <!-- Contenido Principal del Dashboard -->
   <div class="body flex-grow-1 px-3">

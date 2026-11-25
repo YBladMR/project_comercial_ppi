@@ -20,7 +20,7 @@ include_once(__DIR__ . '/../config.php');?>
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/Lista_Productos.css?v=<?php echo filemtime(__DIR__ . '/../css/Lista_Productos.css'); ?>">
   </head>
 <body>
-  <?php include '../Barra_Lateral.php'; ?>
+  <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
 
     <div class="body flex-grow-1 px-3">
       <div class="container-fluid lp">
@@ -166,8 +166,8 @@ include_once(__DIR__ . '/../config.php');?>
 
     <script src="<?php echo BASE_URL; ?>vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
     <script src="<?php echo BASE_URL; ?>vendors/simplebar/js/simplebar.min.js"></script>
-    <script src="<?php echo BASE_URL; ?>js/Notificaciones.js?v=<?php echo filemtime('../js/Notificaciones.js'); ?>"></script>
+    <script src="<?php echo BASE_URL; ?>js/Notificaciones.js?v=<?php echo filemtime(__DIR__ . '/../js/Notificaciones.js'); ?>"></script>
 
-  <script src="<?php echo BASE_URL; ?>js/JSLista_Productos.js?v=<?php echo filemtime('../js/JSLista_Productos.js'); ?>"></script>
+  <script src="<?php echo BASE_URL; ?>js/JSLista_Productos.js?v=<?php echo filemtime(__DIR__ . '/../js/JSLista_Productos.js'); ?>"></script>
 </body>
 </html>

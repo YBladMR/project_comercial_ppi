@@ -33,7 +33,7 @@ function ubicacionCombinacionExiste($conexion, $bodega, $pasillo, $estante, $niv
 }
 
 if ($opcion == "guardar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     try {
         if (ubicacionCombinacionExiste($conexion, $bodega, $pasillo, $estante, $nivel)) {
@@ -69,7 +69,7 @@ if ($opcion == "guardar") {
 }
 
 if ($opcion == "modificar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $idUbicacion = filter_var($id, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
     if ($idUbicacion === false) {
@@ -166,7 +166,7 @@ if ($opcion == "modificar") {
     $conexion->close();
 }
 if ($opcion == "eliminar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $idUbicacion = filter_var($id, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
     if ($idUbicacion === false) {
@@ -267,7 +267,7 @@ if ($opcion == "eliminar") {
 // }
 
 if ($opcion == "consultar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     try {
         $sql = "SELECT u.id_ubicacion, u.bodega, u.pasillo, u.estante, u.nivel,
@@ -317,7 +317,7 @@ if ($opcion == "consultar") {
 
 
 if ($opcion == "consultarIndividual") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "SELECT u.id_ubicacion, u.bodega, u.pasillo, u.estante, u.nivel,
                    COUNT(DISTINCT i.id_producto) AS productos_asignados,

@@ -206,7 +206,7 @@ requerir_autenticacion();
             Clientes
           </a>
           <ul class="nav-group-items compact ubicaciones-submenu">
-            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
             <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/lista-cliente.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
           </ul>
         </li>

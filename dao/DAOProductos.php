@@ -94,7 +94,7 @@ if ($opcion == "guardar") {
         exit;
     }
 
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     if (productoDuplicado($conexion, $nombre, $idcategoria, 0)) {
         echo json_encode([
@@ -170,7 +170,7 @@ if ($opcion == "modificar") {
         exit;
     }
 
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     if (productoDuplicado($conexion, $nombre, $idcategoria, (int) $idproducto)) {
         echo json_encode([
@@ -252,7 +252,7 @@ if ($opcion == "asignarMargen") {
         exit;
     }
 
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sqlCosto = "SELECT i.costo_promedio
                  FROM producto AS p
@@ -324,7 +324,7 @@ if ($opcion == "cambiarEstado") {
         exit;
     }
 
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "UPDATE producto SET estado=? WHERE id_producto=?";
     $stmt = $conexion->prepare($sql);
@@ -347,7 +347,7 @@ if ($opcion == "cambiarEstado") {
 }
 
 if ($opcion == "consultar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
     try {
         $sql = "SELECT p.id_producto, p.nombre, c.nombre AS categoria,
                        p.material, p.alto_cm, p.ancho_cm, p.profundidad_cm, p.peso_kg,
@@ -394,7 +394,7 @@ if ($opcion == "consultar") {
 }
 
 if ($opcion == "consultarIndividual") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "SELECT p.id_producto, p.nombre, p.descripcion, p.id_categoria,
                    c.nombre AS categoria, c.id_padre AS categoria_id_padre, c.estado AS estado_categoria,

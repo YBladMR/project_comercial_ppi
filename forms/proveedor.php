@@ -24,7 +24,7 @@ include_once(__DIR__ . '/../config.php');
 
 <body>
 
-    <?php include '../Barra_Lateral.php'; ?>
+    <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
 
     <div class="body flex-grow-1 px-3">
         <div class="container-lg">

@@ -17,7 +17,7 @@ include_once(__DIR__ . '/../config.php');
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/lista-cliente.css?v=<?php echo filemtime(__DIR__ . '/../css/lista-cliente.css'); ?>">
   </head>
 <body>
-  <?php include '../Barra_Lateral.php'; ?>
+  <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
 
   <div class="body flex-grow-1 px-3">
     <div class="container-fluid lp">

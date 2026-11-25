@@ -163,7 +163,7 @@ $titulo_pagina = "Lista de Ventas";
 <body
   data-puede-anular="<?php echo tiene_permiso('ventas.anular') ? '1' : '0'; ?>"
   data-puede-registrar="<?php echo tiene_permiso('ventas.registrar') ? '1' : '0'; ?>">
-  <?php include '../Barra_Lateral.php'; ?>
+  <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
 
     <div class="body flex-grow-1 px-3">
       <div class="container-fluid lp">
@@ -316,7 +316,7 @@ $titulo_pagina = "Lista de Ventas";
 
     <script src="../vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
     <script src="../vendors/simplebar/js/simplebar.min.js"></script>
-    <script src="../js/Notificaciones.js?v=<?php echo filemtime('../js/Notificaciones.js'); ?>"></script>
+    <script src="../js/Notificaciones.js?v=<?php echo filemtime(__DIR__ . '/../js/Notificaciones.js'); ?>"></script>
 
   <script src="../js/JSLista-ventas.js?v=<?php echo filemtime(__DIR__ . '/../js/JSLista-ventas.js'); ?>"></script>
 </body>
