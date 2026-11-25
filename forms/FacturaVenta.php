@@ -2,8 +2,7 @@
 require_once __DIR__ . '/../autenticacion/seguridad.php';
 
 if (!tiene_permiso('ventas.consultar') && !tiene_permiso('ventas.registrar')) {
-    http_response_code(403);
-    exit('No tienes permiso para ver esta factura.');
+    mostrar_acceso_denegado();
 }
 
 $idVenta = filter_input(INPUT_GET, 'id_venta', FILTER_VALIDATE_INT);

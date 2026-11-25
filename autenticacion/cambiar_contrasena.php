@@ -16,8 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($actual === '' || $nueva === '' || $confirmacion === '') {
             $error = 'Completa todos los campos.';
-        } elseif ((function_exists('mb_strlen') ? mb_strlen($nueva, 'UTF-8') : strlen($nueva)) < 12 || strlen($nueva) > 72) {
-            $error = 'La nueva contraseña debe tener al menos 12 caracteres y no superar 72 bytes.';
+        } elseif (($errorPolitica = validar_politica_contrasena($nueva)) !== null) {
+            $error = $errorPolitica;
         } elseif (!hash_equals($nueva, $confirmacion)) {
             $error = 'La nueva contraseña y su confirmación no coinciden.';
         } elseif (hash_equals($actual, $nueva)) {
@@ -78,7 +78,7 @@ $tokenCsrf = obtener_token_csrf();
           <form method="post" autocomplete="off">
             <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars($tokenCsrf, ENT_QUOTES, 'UTF-8'); ?>" autocomplete="off">
             <div class="mb-3"><label class="form-label" for="contrasenaActual">Contraseña actual</label><input class="form-control" id="contrasenaActual" name="contrasena_actual" type="password" autocomplete="off" required></div>
-            <div class="mb-3"><label class="form-label" for="contrasenaNueva">Nueva contraseña</label><input class="form-control" id="contrasenaNueva" name="contrasena_nueva" type="password" minlength="12" maxlength="72" autocomplete="off" required><div class="form-text">Debe tener al menos 12 caracteres y no superar 72 bytes.</div></div>
+            <div class="mb-3"><label class="form-label" for="contrasenaNueva">Nueva contraseña</label><input class="form-control" id="contrasenaNueva" name="contrasena_nueva" type="password" minlength="12" maxlength="72" autocomplete="off" aria-describedby="ayudaContrasenaNueva" required><div class="form-text" id="ayudaContrasenaNueva">Mínimo 12 caracteres, con al menos una letra, un número y un símbolo. Máximo 72 bytes.</div></div>
             <div class="mb-4"><label class="form-label" for="confirmacion">Confirma la nueva contraseña</label><input class="form-control" id="confirmacion" name="confirmacion" type="password" minlength="12" maxlength="72" autocomplete="off" required></div>
             <button class="btn btn-primary w-100" type="submit">Guardar contraseña</button>
           </form>
@@ -87,5 +87,45 @@ $tokenCsrf = obtener_token_csrf();
       </div>
     </div>
   </div>
+  <script>
+    (() => {
+      const formulario = document.querySelector('form[method="post"]');
+      const nueva = document.getElementById('contrasenaNueva');
+      const confirmacion = document.getElementById('confirmacion');
+      if (!formulario || !nueva || !confirmacion) return;
+
+      const validar = () => {
+        const valor = nueva.value;
+        let mensaje = '';
+        if (valor && Array.from(valor).length < 12) {
+          mensaje = 'Usa al menos 12 caracteres.';
+        } else if (valor && new TextEncoder().encode(valor).length > 72) {
+          mensaje = 'La contraseña no puede superar 72 bytes.';
+        } else if (valor && !/\p{L}/u.test(valor)) {
+          mensaje = 'Incluye al menos una letra.';
+        } else if (valor && !/\p{N}/u.test(valor)) {
+          mensaje = 'Incluye al menos un número.';
+        } else if (valor && !/[\p{P}\p{S}]/u.test(valor)) {
+          mensaje = 'Incluye al menos un símbolo.';
+        }
+        nueva.setCustomValidity(mensaje);
+        confirmacion.setCustomValidity(
+          confirmacion.value && confirmacion.value !== valor
+            ? 'Las contraseñas no coinciden.'
+            : ''
+        );
+      };
+
+      nueva.addEventListener('input', validar);
+      confirmacion.addEventListener('input', validar);
+      formulario.addEventListener('submit', (evento) => {
+        validar();
+        if (!formulario.checkValidity()) {
+          evento.preventDefault();
+          formulario.reportValidity();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

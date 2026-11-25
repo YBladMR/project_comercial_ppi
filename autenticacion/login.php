@@ -63,6 +63,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($usuario && $usuario['estado'] === 'activo'
                 && password_verify($contrasenaIngresada, $usuario['contrasena'])) {
 
+                // Las cuentas existentes con una clave anterior a la política
+                // deben actualizarla después de autenticarse correctamente.
+                $debeCambiarContrasena = (bool) $usuario['debe_cambiar_contrasena'];
+                if (validar_politica_contrasena($contrasenaIngresada) !== null) {
+                    $debeCambiarContrasena = true;
+                    if (empty($usuario['debe_cambiar_contrasena'])) {
+                        $stmtPolitica = $conexion->prepare(
+                            'UPDATE usuario SET debe_cambiar_contrasena = 1 WHERE id_usuario = ? AND estado = \'activo\''
+                        );
+                        if (!$stmtPolitica) {
+                            throw new RuntimeException('No se pudo solicitar el cambio de contraseña.');
+                        }
+                        $stmtPolitica->bind_param('i', $usuario['id_usuario']);
+                        $stmtPolitica->execute();
+                        $stmtPolitica->close();
+                    }
+                }
+
                 // Convierte las cuentas existentes al nuevo formato durante
                 // su siguiente login. El fallback anterior solo aplica a filas
                 // que aún no tienen índice HMAC.
@@ -103,12 +121,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'usuario' => $usuarioLegible,
                     'nombre' => $usuario['nombre'],
                     'rol' => $usuario['rol'],
-                    'debe_cambiar_contrasena' => (bool) $usuario['debe_cambiar_contrasena'],
+                    'debe_cambiar_contrasena' => $debeCambiarContrasena,
                     'ultimo_acceso' => time(),
                     'token_csrf' => bin2hex(random_bytes(32)),
                 ];
 
-                $destino = !empty($usuario['debe_cambiar_contrasena'])
+                $destino = $debeCambiarContrasena
                     ? 'autenticacion/cambiar_contrasena.php'
                     : 'index.php';
                 header('Location: ' . BASE_URL . $destino);

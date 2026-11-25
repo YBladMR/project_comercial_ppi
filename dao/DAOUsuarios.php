@@ -20,8 +20,28 @@ function es_rol_raiz_usuario(string $nombre): bool
 
 function generar_contrasena_temporal(): string
 {
-    // 18 bytes aleatorios representados en hexadecimal: 36 caracteres seguros.
-    return bin2hex(random_bytes(18));
+    // Garantiza los tres tipos de caracteres y conserva 36 caracteres aleatorios.
+    $grupos = [
+        'letras' => 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz',
+        'numeros' => '23456789',
+        'simbolos' => '!@#$%*+-_?',
+    ];
+    $alfabeto = implode('', $grupos);
+    $caracteres = [];
+
+    foreach ($grupos as $grupo) {
+        $caracteres[] = $grupo[random_int(0, strlen($grupo) - 1)];
+    }
+    for ($i = count($caracteres); $i < 36; $i++) {
+        $caracteres[] = $alfabeto[random_int(0, strlen($alfabeto) - 1)];
+    }
+
+    for ($i = count($caracteres) - 1; $i > 0; $i--) {
+        $indice = random_int(0, $i);
+        [$caracteres[$i], $caracteres[$indice]] = [$caracteres[$indice], $caracteres[$i]];
+    }
+
+    return implode('', $caracteres);
 }
 
 function longitud_texto_usuario(string $texto): int
