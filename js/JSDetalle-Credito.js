@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tipo = p.tipo_pago === 'prima' ? 'Prima recibida' : p.tipo_pago === 'liquidacion' ? 'Liquidación' : p.tipo_pago === 'abono_capital' ? 'Abono anticipado' : 'Pago o abono a cuotas';
             const fechaHora = p.fecha_pago ? new Date(`${p.fecha_pago.replace(' ', 'T')}`).toLocaleString('es-SV') : '—';
             const esPrima = p.tipo_pago === 'prima';
-            return `<tr><td>${escapar(fechaHora)}</td><td>${tipo}</td><td>${escapar(p.usuario)}</td>
+            return `<tr><td>${escapar(fechaHora)}<br><a class="small" href="TicketPagoCredito.php?id_pago=${encodeURIComponent(p.id_pago)}">Ver ticket</a></td><td>${tipo}</td><td>${escapar(p.usuario)}</td>
               <td class="text-end">${dinero(p.monto)}</td><td class="text-end">${esPrima ? '—' : dinero(p.abono_interes)}</td>
               <td class="text-end">${esPrima ? '—' : dinero(p.abono_mora)}</td><td class="text-end">${esPrima ? '—' : dinero(p.capital_aplicado)}</td>
               <td class="text-end fw-semibold">${dinero(p.saldo_final)}</td></tr>`;
@@ -133,8 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
             boton.disabled = true;
             try {
                 const respuesta = await pedir(URL_DAO, { method: 'POST', body: datos });
-                notificar('success', `${respuesta.mensaje} Saldo actual: ${dinero(respuesta.saldo_final)}. No se generó ticket.`);
-                await cargar();
+                window.location.href = `TicketPagoCredito.php?id_pago=${encodeURIComponent(respuesta.id_pago)}`;
+                return;
             } catch (error) {
                 notificar('danger', error.message);
             } finally {
