@@ -57,8 +57,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     fila.className = "linea-compra";
     fila.innerHTML = `
       <td><select class="form-select producto-linea" required>${opcionesProductos()}</select></td>
-      <td><input type="number" class="form-control cantidad-linea" min="1" step="1" value="1" required></td>
-      <td><input type="number" class="form-control costo-linea" min="0" step="0.01" placeholder="0.00" required></td>
+      <td><input type="number" class="form-control cantidad-linea" min="1" step="1" value="1" autocomplete="off" required></td>
+      <td><input type="number" class="form-control costo-linea" min="0" step="0.01" placeholder="0.00" autocomplete="off" required></td>
       <td class="text-end subtotal-linea">$0.00</td>
       <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm quitar-linea" aria-label="Quitar producto"><i class="bi bi-trash" aria-hidden="true"></i></button></td>`;
     cuerpo.appendChild(fila);

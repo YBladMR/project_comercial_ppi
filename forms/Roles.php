@@ -23,10 +23,10 @@ $titulo_pagina = 'Administración de roles';
         <div class="card-header fw-semibold" id="tituloFormularioRol">Crear rol</div>
         <div class="card-body">
           <form id="formRol">
-            <input type="hidden" id="idRol" value="0">
+            <input type="hidden" id="idRol" value="0" autocomplete="off">
             <div class="row g-3">
-              <div class="col-md-5"><label class="form-label" for="nombreRol">Nombre</label><input class="form-control" id="nombreRol" maxlength="50" required></div>
-              <div class="col-md-7"><label class="form-label" for="descripcionRol">Descripción</label><input class="form-control" id="descripcionRol" maxlength="150"></div>
+              <div class="col-md-5"><label class="form-label" for="nombreRol">Nombre</label><input class="form-control" id="nombreRol" maxlength="50" autocomplete="off" required></div>
+              <div class="col-md-7"><label class="form-label" for="descripcionRol">Descripción</label><input class="form-control" id="descripcionRol" maxlength="150" autocomplete="off"></div>
             </div>
             <fieldset class="mt-4">
               <legend class="fs-6">Permisos del rol</legend>

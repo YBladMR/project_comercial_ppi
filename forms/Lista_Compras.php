@@ -72,16 +72,16 @@ include_once(__DIR__ . '/../config.php');
               <div id="panelFiltros" class="lp-menu" hidden>
                 <div class="lp-filtro-grid">
                   <label for="fechaDesde">Desde
-                    <input type="date" id="fechaDesde">
+                    <input type="date" id="fechaDesde" autocomplete="off">
                   </label>
                   <label for="fechaHasta">Hasta
-                    <input type="date" id="fechaHasta">
+                    <input type="date" id="fechaHasta" autocomplete="off">
                   </label>
                   <label for="totalMinimo">Total mínimo
-                    <input type="number" id="totalMinimo" min="0" step="0.01" placeholder="$0.00">
+                    <input type="number" id="totalMinimo" min="0" step="0.01" placeholder="$0.00" autocomplete="off">
                   </label>
                   <label for="totalMaximo">Total máximo
-                    <input type="number" id="totalMaximo" min="0" step="0.01" placeholder="$0.00">
+                    <input type="number" id="totalMaximo" min="0" step="0.01" placeholder="$0.00" autocomplete="off">
                   </label>
                 </div>
                 <div class="d-flex flex-column gap-2">

@@ -323,7 +323,7 @@ requerir_autenticacion();
             </div>
             <a class="dropdown-item" href="<?php echo BASE_URL; ?>autenticacion/cambiar_contrasena.php">Cambiar contraseña</a>
             <form method="post" action="<?php echo BASE_URL; ?>autenticacion/Cerrar_Sesion.php">
-              <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars(obtener_token_csrf(), ENT_QUOTES, 'UTF-8'); ?>">
+              <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars(obtener_token_csrf(), ENT_QUOTES, 'UTF-8'); ?>" autocomplete="off">
               <button class="dropdown-item" type="submit">Cerrar sesión</button>
             </form>
           </div>

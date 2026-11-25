@@ -112,7 +112,7 @@ include_once __DIR__ . '/../config.php';
                   <input id="buscarProductoAjuste" class="form-control" type="text" required autocomplete="off"
                          placeholder="Escriba para buscar un producto..." role="combobox" aria-autocomplete="list"
                          aria-expanded="false" aria-controls="sugerenciasProductoAjuste">
-                  <input id="productoAjuste" type="hidden">
+                  <input id="productoAjuste" type="hidden" autocomplete="off">
                   <div class="ai-sugerencias" id="sugerenciasProductoAjuste" role="listbox" hidden></div>
                 </div>
                 <div class="form-text">Se muestran hasta 3 coincidencias. Use ↑ y ↓, luego Enter para elegir.</div>
@@ -126,7 +126,7 @@ include_once __DIR__ . '/../config.php';
               </div>
               <div class="col-md-3">
                 <label for="cantidadAjuste" class="form-label">Cantidad *</label>
-                <input id="cantidadAjuste" class="form-control" type="number" min="1" max="4294967295" step="1" value="1" required>
+                <input id="cantidadAjuste" class="form-control" type="number" min="1" max="4294967295" step="1" value="1" required autocomplete="off">
               </div>
               <div class="col-md-8">
                 <label for="motivoAjuste" class="form-label">Motivo *</label>
@@ -163,17 +163,17 @@ include_once __DIR__ . '/../config.php';
             <label for="buscarHistorialAjustes" class="form-label small mb-1">Buscar</label>
             <div class="ai-filtro-buscar">
               <i class="bi bi-search" aria-hidden="true"></i>
-              <input id="buscarHistorialAjustes" class="form-control form-control-sm" type="search"
+              <input id="buscarHistorialAjustes" class="form-control form-control-sm" type="search" autocomplete="off"
                      placeholder="Producto, motivo o usuario..." autocomplete="off">
             </div>
           </div>
           <div class="col-6 col-lg-2">
             <label for="fechaDesdeAjustes" class="form-label small mb-1">Desde</label>
-            <input id="fechaDesdeAjustes" class="form-control form-control-sm" type="date">
+            <input id="fechaDesdeAjustes" class="form-control form-control-sm" type="date" autocomplete="off">
           </div>
           <div class="col-6 col-lg-2">
             <label for="fechaHastaAjustes" class="form-label small mb-1">Hasta</label>
-            <input id="fechaHastaAjustes" class="form-control form-control-sm" type="date">
+            <input id="fechaHastaAjustes" class="form-control form-control-sm" type="date" autocomplete="off">
           </div>
           <div class="col-6 col-lg-1">
             <label for="tipoFiltroAjustes" class="form-label small mb-1">Tipo</label>

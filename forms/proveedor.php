@@ -41,7 +41,7 @@ include_once(__DIR__ . '/../config.php');
 
                 <div class="card-body">
                     <form id="formulario" name="formulario" method="POST" action="#" autocomplete="off">
-                        <input type="hidden" id="idproveedor" name="idproveedor" value="">
+                        <input type="hidden" id="idproveedor" name="idproveedor" value="" autocomplete="off">
 
                         <div class="row g-3">
                             <div class="col-12 col-md-4">
@@ -60,22 +60,22 @@ include_once(__DIR__ . '/../config.php');
 
                             <div class="col-12 col-md-6" id="grupoDui">
                                 <label for="dui" class="form-label">DUI (*)</label>
-                                <input type="text" class="form-control" id="dui" name="dui" maxlength="10" pattern="\d{8}-\d" placeholder="00000000-0">
+                                <input type="text" class="form-control" id="dui" name="dui" maxlength="10" pattern="\d{8}-\d" placeholder="00000000-0" autocomplete="off">
                             </div>
 
                             <div class="col-12 col-md-6" id="grupoNit">
                                 <label for="nit" class="form-label">NIT (*)</label>
-                                <input type="text" class="form-control" id="nit" name="nit" maxlength="17" pattern="\d{4}-\d{6}-\d{3}-\d" placeholder="0000-000000-000-0">
+                                <input type="text" class="form-control" id="nit" name="nit" maxlength="17" pattern="\d{4}-\d{6}-\d{3}-\d" placeholder="0000-000000-000-0" autocomplete="off">
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label for="telefono" class="form-label">Teléfono</label>
-                                <input type="tel" class="form-control" id="telefono" name="telefono" maxlength="9" pattern="\d{4}-\d{4}" placeholder="0000-0000">
+                                <input type="tel" class="form-control" id="telefono" name="telefono" maxlength="9" pattern="\d{4}-\d{4}" placeholder="0000-0000" autocomplete="off">
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label for="correo" class="form-label">Correo electrónico</label>
-                                <input type="email" class="form-control" id="correo" name="correo" autocomplete="email">
+                                <input type="email" class="form-control" id="correo" name="correo" autocomplete="off">
                             </div>
 
                             <div class="col-12 col-md-8">

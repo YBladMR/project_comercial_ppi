@@ -196,11 +196,11 @@ $titulo_pagina = "Lista de Ventas";
                   <div class="lp-fechas mb-3">
                     <div>
                       <label class="lp-et" for="fecha-desde">Desde</label>
-                      <input type="date" id="fecha-desde">
+                      <input type="date" id="fecha-desde" autocomplete="off">
                     </div>
                     <div>
                       <label class="lp-et" for="fecha-hasta">Hasta</label>
-                      <input type="date" id="fecha-hasta">
+                      <input type="date" id="fecha-hasta" autocomplete="off">
                     </div>
                   </div>
                   <div class="mb-3">

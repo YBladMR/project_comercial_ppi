@@ -80,7 +80,7 @@ include_once(__DIR__ . '/../config.php');?>
                 </button>
                 <div id="panelFiltros" class="lp-menu" hidden>
                   <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="solo-bajo">
+                    <input class="form-check-input" type="checkbox" id="solo-bajo" autocomplete="off">
                     <label class="form-check-label" for="solo-bajo">Solo con stock bajo</label>
                   </div>
                   <div class="d-flex flex-column gap-2">

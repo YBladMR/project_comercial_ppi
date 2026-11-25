@@ -76,10 +76,10 @@ $tokenCsrf = obtener_token_csrf();
           <?php endif; ?>
           <?php if ($error !== ''): ?><div class="alert alert-danger" role="alert"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></div><?php endif; ?>
           <form method="post" autocomplete="off">
-            <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars($tokenCsrf, ENT_QUOTES, 'UTF-8'); ?>">
-            <div class="mb-3"><label class="form-label" for="contrasenaActual">Contraseña actual</label><input class="form-control" id="contrasenaActual" name="contrasena_actual" type="password" autocomplete="current-password" required></div>
-            <div class="mb-3"><label class="form-label" for="contrasenaNueva">Nueva contraseña</label><input class="form-control" id="contrasenaNueva" name="contrasena_nueva" type="password" minlength="12" maxlength="72" autocomplete="new-password" required><div class="form-text">Debe tener al menos 12 caracteres y no superar 72 bytes.</div></div>
-            <div class="mb-4"><label class="form-label" for="confirmacion">Confirma la nueva contraseña</label><input class="form-control" id="confirmacion" name="confirmacion" type="password" minlength="12" maxlength="72" autocomplete="new-password" required></div>
+            <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars($tokenCsrf, ENT_QUOTES, 'UTF-8'); ?>" autocomplete="off">
+            <div class="mb-3"><label class="form-label" for="contrasenaActual">Contraseña actual</label><input class="form-control" id="contrasenaActual" name="contrasena_actual" type="password" autocomplete="off" required></div>
+            <div class="mb-3"><label class="form-label" for="contrasenaNueva">Nueva contraseña</label><input class="form-control" id="contrasenaNueva" name="contrasena_nueva" type="password" minlength="12" maxlength="72" autocomplete="off" required><div class="form-text">Debe tener al menos 12 caracteres y no superar 72 bytes.</div></div>
+            <div class="mb-4"><label class="form-label" for="confirmacion">Confirma la nueva contraseña</label><input class="form-control" id="confirmacion" name="confirmacion" type="password" minlength="12" maxlength="72" autocomplete="off" required></div>
             <button class="btn btn-primary w-100" type="submit">Guardar contraseña</button>
           </form>
           <?php if (!$forzado): ?><a class="btn btn-link w-100 mt-2" href="<?php echo BASE_URL; ?>index.php">Volver al sistema</a><?php endif; ?>
