@@ -10,7 +10,7 @@ include_once(__DIR__ . '/../config.php');
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $titulo_pagina; ?> - Comercial X</title>
+    <title><?php echo $titulo_pagina; ?> - Casa Aurelia</title>
 
     <!-- Estilos de la plantilla CoreUI -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>vendors/simplebar/css/simplebar.css">
@@ -24,7 +24,7 @@ include_once(__DIR__ . '/../config.php');
 
 <body>
 
-    <?php include '../Barra_Lateral.php'; ?>
+    <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
 
     <div class="body flex-grow-1 px-3">
         <div class="container-lg">
@@ -41,7 +41,7 @@ include_once(__DIR__ . '/../config.php');
 
                 <div class="card-body">
                     <form id="formulario" name="formulario" method="POST" action="#" autocomplete="off">
-                        <input type="hidden" id="idproveedor" name="idproveedor" value="">
+                        <input type="hidden" id="idproveedor" name="idproveedor" value="" autocomplete="off">
 
                         <div class="row g-3">
                             <div class="col-12 col-md-4">
@@ -60,22 +60,22 @@ include_once(__DIR__ . '/../config.php');
 
                             <div class="col-12 col-md-6" id="grupoDui">
                                 <label for="dui" class="form-label">DUI (*)</label>
-                                <input type="text" class="form-control" id="dui" name="dui" maxlength="10" pattern="\d{8}-\d" placeholder="00000000-0">
+                                <input type="text" class="form-control" id="dui" name="dui" maxlength="10" pattern="\d{8}-\d" placeholder="00000000-0" autocomplete="off">
                             </div>
 
                             <div class="col-12 col-md-6" id="grupoNit">
                                 <label for="nit" class="form-label">NIT (*)</label>
-                                <input type="text" class="form-control" id="nit" name="nit" maxlength="17" pattern="\d{4}-\d{6}-\d{3}-\d" placeholder="0000-000000-000-0">
+                                <input type="text" class="form-control" id="nit" name="nit" maxlength="17" pattern="\d{4}-\d{6}-\d{3}-\d" placeholder="0000-000000-000-0" autocomplete="off">
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label for="telefono" class="form-label">Teléfono</label>
-                                <input type="tel" class="form-control" id="telefono" name="telefono" maxlength="9" pattern="\d{4}-\d{4}" placeholder="0000-0000">
+                                <input type="tel" class="form-control" id="telefono" name="telefono" maxlength="9" pattern="\d{4}-\d{4}" placeholder="0000-0000" autocomplete="off">
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label for="correo" class="form-label">Correo electrónico</label>
-                                <input type="email" class="form-control" id="correo" name="correo" autocomplete="email">
+                                <input type="email" class="form-control" id="correo" name="correo" autocomplete="off">
                             </div>
 
                             <div class="col-12 col-md-8">
@@ -106,7 +106,7 @@ include_once(__DIR__ . '/../config.php');
     </div>
 
     <footer class="footer px-4">
-        <div>Comercial X &copy; 2026.</div>
+        <div>Casa Aurelia &copy; 2026.</div>
     </footer>
 
     </div><!-- Cierra el wrapper de Barra_Lateral.php -->

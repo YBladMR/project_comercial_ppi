@@ -1,6 +1,28 @@
 <?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
 header('Content-Type: application/json; charset=utf-8');
-session_start();
+
+$opcion = $_POST['opcion'] ?? $_GET['opcion'] ?? '';
+$permisosVenta = [
+    'guardar' => 'ventas.registrar',
+    'consultarClientes' => 'ventas.registrar',
+    'buscarClientes' => 'ventas.registrar',
+    'consultarProductos' => 'ventas.registrar',
+    'consultar' => 'ventas.consultar',
+    'consultarDetalle' => 'ventas.consultar',
+    'anular' => 'ventas.anular',
+];
+
+if (!isset($permisosVenta[$opcion])) {
+    http_response_code(400);
+    echo json_encode(['estado' => false, 'mensaje' => 'La operación de ventas no es válida.'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+requerir_permiso($permisosVenta[$opcion], true);
+if (in_array($opcion, ['guardar', 'anular'], true)) {
+    requerir_post_api();
+}
 
 const IVA_TASA = 0.13;   // IVA Débito Fiscal (13%)
 
@@ -8,17 +30,21 @@ $idventa = $_POST['id_venta'] ?? '';
 $idcliente = $_POST['id_cliente'] ?? '';
 $tipo = $_POST['tipo_venta'] ?? '';
 $detalleJson = $_POST['detalle'] ?? '';
+$primaEntrada = $_POST['prima'] ?? '';
+$numeroCuotasEntrada = $_POST['numero_cuotas'] ?? '';
+$fechaPrimerVencimientoEntrada = $_POST['fecha_primer_vencimiento'] ?? '';
 
-$opcion = $_POST['opcion'] ?? $_GET['opcion'] ?? '';
+const CREDITO_TASA_INTERES = 20.00;
+const CREDITO_TASA_MORATORIA = 5.00;
 
-// Usuario que registra la venta: el de la sesión (cuando exista el login) o el usuario 1 por defecto
-$idUsuario = (int) ($_SESSION['id_usuario'] ?? 1);
+// El permiso de ventas requiere una sesión autenticada; el usuario proviene de ella.
+$idUsuario = (int) $_SESSION['id_usuario'];
 
 /* ============================================================
  * GUARDAR VENTA (cabecera + detalle + inventario + kardex)
  * ============================================================ */
 if ($opcion == "guardar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $lineas = json_decode($detalleJson, true);
 
@@ -124,6 +150,38 @@ if ($opcion == "guardar") {
         $iva = round($subtotal * IVA_TASA, 2);
         $total = round($subtotal + $iva, 2);
 
+        $planCredito = null;
+        if ($tipo === 'credito') {
+            $prima = normalizarMontoCredito($primaEntrada);
+            $numeroCuotas = filter_var($numeroCuotasEntrada, FILTER_VALIDATE_INT);
+            $fechaPrimerVencimiento = validarFechaPrimerVencimiento($fechaPrimerVencimientoEntrada);
+
+            if ($prima === null || $prima <= 0 || $prima >= $total) {
+                throw new RuntimeException("La prima debe ser mayor que cero y menor que el total de la venta.");
+            }
+            if ($numeroCuotas === false || $numeroCuotas < 1 || $numeroCuotas > 120) {
+                throw new RuntimeException("El número de cuotas mensuales debe estar entre 1 y 120.");
+            }
+
+            $capitalFinanciado = round($total - $prima, 2);
+            if ($capitalFinanciado < round(((int) $numeroCuotas) * 0.01, 2)) {
+                throw new RuntimeException("El capital financiado no alcanza para distribuir al menos $0.01 de capital en cada cuota.");
+            }
+            $hoyCredito = new DateTimeImmutable('today', new DateTimeZone('America/El_Salvador'));
+            $planCredito = generarPlanCredito(
+                $capitalFinanciado,
+                (int) $numeroCuotas,
+                $hoyCredito,
+                $fechaPrimerVencimiento,
+                CREDITO_TASA_INTERES
+            );
+            $planCredito['prima'] = $prima;
+            $planCredito['capital_financiado'] = $capitalFinanciado;
+            $planCredito['numero_cuotas'] = (int) $numeroCuotas;
+            $planCredito['fecha_primer_vencimiento'] = $fechaPrimerVencimiento->format('Y-m-d');
+            $planCredito['fecha_aprobacion'] = $hoyCredito->format('Y-m-d');
+        }
+
         // Al contado la venta queda pagada, al crédito queda pendiente
         $estadoVenta = $tipo == "contado" ? "pagado" : "pendiente";
 
@@ -165,10 +223,131 @@ if ($opcion == "guardar") {
             }
         }
 
+        $idCreditoNuevo = null;
+        if ($planCredito !== null) {
+            $tasaInteres = CREDITO_TASA_INTERES;
+            $tasaMoratoria = CREDITO_TASA_MORATORIA;
+            $frecuencia = 'mensual';
+            $plazo = $planCredito['numero_cuotas'];
+            $estadoCredito = 'pendiente';
+            $fechaPrimer = $planCredito['fecha_primer_vencimiento'];
+            $fechaCalculo = $planCredito['fecha_aprobacion'];
+            $cuota = $planCredito['cuota'];
+            $prima = $planCredito['prima'];
+            $capitalFinanciado = $planCredito['capital_financiado'];
+            $saldoCapital = $capitalFinanciado;
+            $numeroCuotas = $planCredito['numero_cuotas'];
+
+            $stmtCredito = $conexion->prepare(
+                "INSERT INTO credito
+                    (id_venta, prima, capital_financiado, saldo_capital, tasa_interes,
+                     tasa_interes_moratoria, cuota, numero_cuotas, frecuencia_pago, plazo,
+                     fecha_aprobacion, fecha_primer_vencimiento, fecha_ultimo_calculo_interes, estado)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            );
+            $stmtCredito->bind_param(
+                'iddddddisissss',
+                $idNuevo,
+                $prima,
+                $capitalFinanciado,
+                $saldoCapital,
+                $tasaInteres,
+                $tasaMoratoria,
+                $cuota,
+                $numeroCuotas,
+                $frecuencia,
+                $plazo,
+                $fechaCalculo,
+                $fechaPrimer,
+                $fechaCalculo,
+                $estadoCredito
+            );
+            $stmtCredito->execute();
+            $idCreditoNuevo = (int) $stmtCredito->insert_id;
+            $stmtCredito->close();
+
+            $stmtPlan = $conexion->prepare(
+                "INSERT INTO plan_pago
+                    (id_credito, numero_cuota, monto_cuota, capital_proyectado,
+                     interes_proyectado, saldo_capital_proyectado, fecha_vencimiento, estado)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 'pendiente')"
+            );
+            $stmtEstadoCuota = $conexion->prepare(
+                "INSERT INTO credito_cuota_estado
+                    (id_plan_pago, capital_pendiente, interes_pendiente, mora_pendiente, fecha_ultimo_calculo_mora)
+                 VALUES (?, ?, 0, 0, ?)"
+            );
+            $primerPlanId = null;
+            foreach ($planCredito['cuotas'] as $cuotaPlan) {
+                $numeroCuota = $cuotaPlan['numero'];
+                $montoCuota = $cuotaPlan['monto'];
+                $capitalCuota = $cuotaPlan['capital'];
+                $interesCuota = $cuotaPlan['interes'];
+                $saldoProyectado = $cuotaPlan['saldo'];
+                $fechaVencimiento = $cuotaPlan['fecha'];
+                $stmtPlan->bind_param(
+                    'iidddds',
+                    $idCreditoNuevo,
+                    $numeroCuota,
+                    $montoCuota,
+                    $capitalCuota,
+                    $interesCuota,
+                    $saldoProyectado,
+                    $fechaVencimiento
+                );
+                $stmtPlan->execute();
+                $idPlanNuevo = (int) $stmtPlan->insert_id;
+                if ($primerPlanId === null) {
+                    $primerPlanId = $idPlanNuevo;
+                }
+                $capitalPendiente = $capitalCuota;
+                $stmtEstadoCuota->bind_param('ids', $idPlanNuevo, $capitalPendiente, $fechaVencimiento);
+                $stmtEstadoCuota->execute();
+            }
+            $stmtPlan->close();
+            $stmtEstadoCuota->close();
+
+            // La prima se registra como recibida en la venta; el crédito abre con el capital neto financiado.
+            $fechaPagoPrima = (new DateTimeImmutable('now', new DateTimeZone('America/El_Salvador')))->format('Y-m-d H:i:s');
+            $tipoPagoPrima = 'prima';
+            $montoCero = 0.00;
+            $comprobantePrima = null;
+            $stmtPrima = $conexion->prepare(
+                "INSERT INTO pago
+                    (id_plan_pago, id_usuario, fecha_pago, monto, tipo_pago, interes_corriente,
+                     abono_capital, numero_comprobante, mora)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            );
+            $stmtPrima->bind_param(
+                'iisdsddsd',
+                $primerPlanId,
+                $idUsuario,
+                $fechaPagoPrima,
+                $prima,
+                $tipoPagoPrima,
+                $montoCero,
+                $montoCero,
+                $comprobantePrima,
+                $montoCero
+            );
+            $stmtPrima->execute();
+            $idPagoPrima = (int) $stmtPrima->insert_id;
+            $stmtPrima->close();
+
+            $stmtEstadoPrima = $conexion->prepare(
+                'INSERT INTO estado_cuenta (id_pago, monto_cuotas, abono_interes, abono_mora, abono_capital, saldo_final)
+                 VALUES (?, ?, 0, 0, 0, ?)'
+            );
+            $stmtEstadoPrima->bind_param('idd', $idPagoPrima, $prima, $capitalFinanciado);
+            $stmtEstadoPrima->execute();
+            $stmtEstadoPrima->close();
+        }
+
         $conexion->commit();
 
         responder(true, "Venta registrada correctamente", [
             "id_venta" => $idNuevo,
+            "id_credito" => $idCreditoNuevo,
             "total" => $total,
             "advertencias" => $advertencias
         ]);
@@ -187,7 +366,7 @@ if ($opcion == "guardar") {
  * ANULAR VENTA: se cancela completa y se devuelve todo al inventario
  * ============================================================ */
 if ($opcion == "anular") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     if (!ctype_digit((string) $idventa) || (int) $idventa <= 0) {
         responder(false, "Venta no válida");
@@ -198,7 +377,7 @@ if ($opcion == "anular") {
     try {
         $conexion->begin_transaction();
 
-        $stmt = $conexion->prepare("SELECT estado FROM venta WHERE id_venta = ? FOR UPDATE");
+        $stmt = $conexion->prepare("SELECT estado, tipo_venta FROM venta WHERE id_venta = ? FOR UPDATE");
         $stmt->bind_param("i", $idventa);
         $stmt->execute();
         $venta = $stmt->get_result()->fetch_assoc();
@@ -209,6 +388,9 @@ if ($opcion == "anular") {
         }
         if ($venta['estado'] == 'anulado') {
             throw new RuntimeException("La venta ya está anulada");
+        }
+        if ($venta['tipo_venta'] === 'credito') {
+            throw new RuntimeException("Las ventas al crédito no se pueden anular desde ventas porque requieren gestionar la prima y el saldo del crédito.");
         }
 
         $stmt = $conexion->prepare("SELECT id_producto, cantidad FROM detalle_venta WHERE id_venta = ?");
@@ -273,8 +455,45 @@ if ($opcion == "anular") {
  * ============================================================ */
 
 // Clientes activos para el select del formulario
+if ($opcion == "buscarClientes") {
+    require_once __DIR__ . '/../conexion.php';
+
+    $termino = trim($_POST['termino'] ?? '');
+    if (strlen($termino) < 2) {
+        echo json_encode([], JSON_UNESCAPED_UNICODE);
+        $conexion->close();
+        exit;
+    }
+
+    $patron = '%' . $termino . '%';
+    $stmt = $conexion->prepare(
+        "SELECT id_cliente, nombre, IFNULL(apellido, '') AS apellido, dui
+         FROM cliente
+         WHERE estado = 'activo'
+           AND (CONCAT_WS(' ', nombre, apellido) LIKE ? OR dui LIKE ?)
+         ORDER BY nombre, apellido"
+    );
+    $stmt->bind_param('ss', $patron, $patron);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+
+    $clientes = [];
+    while ($fila = $resultado->fetch_assoc()) {
+        $clientes[] = [
+            'id_cliente' => $fila['id_cliente'],
+            'nombre' => trim($fila['nombre'] . ' ' . $fila['apellido']),
+            'dui' => $fila['dui']
+        ];
+    }
+
+    echo json_encode($clientes, JSON_UNESCAPED_UNICODE);
+    $stmt->close();
+    $conexion->close();
+    exit;
+}
+
 if ($opcion == "consultarClientes") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "SELECT id_cliente, nombre, IFNULL(apellido, '') AS apellido, dui
             FROM cliente WHERE estado = 'activo' ORDER BY nombre, apellido";
@@ -296,7 +515,7 @@ if ($opcion == "consultarClientes") {
 
 // Productos activos con su existencia para el formulario de venta
 if ($opcion == "consultarProductos") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $sql = "SELECT p.id_producto, p.nombre, p.precio_venta, p.stock_minimo, IFNULL(i.existencia, 0) AS existencia
             FROM producto AS p
@@ -323,7 +542,7 @@ if ($opcion == "consultarProductos") {
 
 // Lista de ventas
 if ($opcion == "consultar") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     try {
         $sql = "SELECT v.id_venta, v.fecha_hora,
@@ -369,11 +588,12 @@ if ($opcion == "consultar") {
 
 // Cabecera + detalle de una venta
 if ($opcion == "consultarDetalle") {
-    require_once "../conexion.php";
+    require_once __DIR__ . '/../conexion.php';
 
     $stmt = $conexion->prepare(
         "SELECT v.id_venta, v.fecha_hora,
                 CONCAT(c.nombre, ' ', IFNULL(c.apellido, '')) AS cliente, c.dui,
+                c.telefono, c.direccion_entrega,
                 v.tipo_venta, v.estado, v.subtotal, v.iva_debito, v.total,
                 IFNULL(u.nombre, '') AS usuario
          FROM venta AS v
@@ -416,6 +636,137 @@ if ($opcion == "consultarDetalle") {
 /* ============================================================
  * FUNCIONES
  * ============================================================ */
+
+function normalizarMontoCredito($valor): ?float
+{
+    $texto = trim((string) $valor);
+    if ($texto === '' || !preg_match('/^\d+(?:\.\d{1,2})?$/', $texto)) {
+        return null;
+    }
+    return round((float) $texto, 2);
+}
+
+function validarFechaPrimerVencimiento($valor): DateTimeImmutable
+{
+    $texto = trim((string) $valor);
+    $fecha = DateTimeImmutable::createFromFormat('!Y-m-d', $texto, new DateTimeZone('America/El_Salvador'));
+    $errores = DateTimeImmutable::getLastErrors();
+    if (!$fecha || ($errores !== false && ($errores['warning_count'] > 0 || $errores['error_count'] > 0))
+        || $fecha->format('Y-m-d') !== $texto) {
+        throw new RuntimeException('La fecha del primer vencimiento no es válida.');
+    }
+
+    $hoy = new DateTimeImmutable('today', new DateTimeZone('America/El_Salvador'));
+    if ($fecha <= $hoy) {
+        throw new RuntimeException('El primer vencimiento debe ser una fecha futura.');
+    }
+    return $fecha;
+}
+
+function fechaCuotaMensual(DateTimeImmutable $ancla, int $desplazamiento): DateTimeImmutable
+{
+    $primerDia = $ancla->modify('first day of this month')->modify('+' . $desplazamiento . ' months');
+    $diaAncla = (int) $ancla->format('j');
+    $ultimoDia = (int) $primerDia->format('t');
+    return $primerDia->setDate(
+        (int) $primerDia->format('Y'),
+        (int) $primerDia->format('n'),
+        min($diaAncla, $ultimoDia)
+    );
+}
+
+function interesProyectadoPorDias(float $capital, float $tasaAnual, DateTimeImmutable $desde, DateTimeImmutable $hasta): float
+{
+    if ($capital <= 0 || $tasaAnual <= 0 || $hasta <= $desde) {
+        return 0.0;
+    }
+
+    $cursor = $desde->setTime(0, 0);
+    $fin = $hasta->setTime(0, 0);
+    $total = 0.0;
+    while ($cursor < $fin) {
+        $inicioSiguienteAnio = $cursor->setDate((int) $cursor->format('Y') + 1, 1, 1);
+        $finSegmento = $inicioSiguienteAnio < $fin ? $inicioSiguienteAnio : $fin;
+        $dias = (int) $cursor->diff($finSegmento)->days;
+        $diasAnio = $cursor->format('L') === '1' ? 366 : 365;
+        $total += $capital * ($tasaAnual / 100) * $dias / $diasAnio;
+        $cursor = $finSegmento;
+    }
+    return round($total, 2);
+}
+
+function generarPlanCredito(
+    float $principal,
+    int $numeroCuotas,
+    DateTimeImmutable $fechaInicio,
+    DateTimeImmutable $primerVencimiento,
+    float $tasaAnual
+): array {
+    $simularSaldo = static function (float $cuota) use ($principal, $numeroCuotas, $fechaInicio, $primerVencimiento, $tasaAnual): float {
+        $saldo = $principal;
+        $fechaAnterior = $fechaInicio;
+        for ($i = 0; $i < $numeroCuotas; $i++) {
+            $vencimiento = fechaCuotaMensual($primerVencimiento, $i);
+            $interes = interesProyectadoPorDias($saldo, $tasaAnual, $fechaAnterior, $vencimiento);
+            $capitalPagado = min($saldo, max(0, round($cuota - $interes, 2)));
+            $saldo = round(max(0, $saldo - $capitalPagado), 2);
+            $fechaAnterior = $vencimiento;
+        }
+        return $saldo;
+    };
+
+    $inferior = 0.0;
+    $superior = $principal * (1 + ($tasaAnual / 100) * ($numeroCuotas / 12)) + 100;
+    for ($i = 0; $i < 80; $i++) {
+        $medio = ($inferior + $superior) / 2;
+        if ($simularSaldo($medio) > 0) {
+            $inferior = $medio;
+        } else {
+            $superior = $medio;
+        }
+    }
+    $cuotaRegular = round($superior, 2);
+    while ($simularSaldo($cuotaRegular) > 0 && $cuotaRegular < $principal * 10) {
+        $cuotaRegular = round($cuotaRegular + 0.01, 2);
+    }
+
+    $cuotas = [];
+    $saldo = round($principal, 2);
+    $fechaAnterior = $fechaInicio;
+    $interesTotal = 0.0;
+    for ($i = 0; $i < $numeroCuotas; $i++) {
+        if ($saldo <= 0.009 && $i < $numeroCuotas - 1) {
+            throw new RuntimeException('Con ese capital no se pueden distribuir pagos positivos en todas las cuotas; reduce el número de cuotas.');
+        }
+        $vencimiento = fechaCuotaMensual($primerVencimiento, $i);
+        $interes = interesProyectadoPorDias($saldo, $tasaAnual, $fechaAnterior, $vencimiento);
+        $monto = $i === $numeroCuotas - 1
+            ? round($saldo + $interes, 2)
+            : min($cuotaRegular, round($saldo + $interes, 2));
+        $capital = min($saldo, max(0, round($monto - $interes, 2)));
+        if ($i === $numeroCuotas - 1) {
+            $capital = $saldo;
+            $monto = round($capital + $interes, 2);
+        }
+        $saldo = round(max(0, $saldo - $capital), 2);
+        $interesTotal += $interes;
+        $cuotas[] = [
+            'numero' => $i + 1,
+            'fecha' => $vencimiento->format('Y-m-d'),
+            'monto' => $monto,
+            'capital' => $capital,
+            'interes' => $interes,
+            'saldo' => $saldo,
+        ];
+        $fechaAnterior = $vencimiento;
+    }
+
+    return [
+        'cuota' => $cuotas[0]['monto'] ?? 0,
+        'interes_total' => round($interesTotal, 2),
+        'cuotas' => $cuotas,
+    ];
+}
 
 function responder($estado, $mensaje, $extra = [])
 {

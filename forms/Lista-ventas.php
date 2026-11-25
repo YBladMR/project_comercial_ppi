@@ -1,12 +1,14 @@
-<?php if (!defined('BASE_URL')) define('BASE_URL', '/project_comercial_ppi/'); ?>
-<?php $titulo_pagina = "Lista de Ventas"; ?>
-<?php $titulo_pagina = "Lista de Ventas"; ?>
+<?php
+require_once __DIR__ . '/../autenticacion/seguridad.php';
+requerir_permiso('ventas.consultar');
+$titulo_pagina = "Lista de Ventas";
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lista de Ventas - Comercial X</title>
+  <title>Lista de Ventas - Casa Aurelia</title>
   <link rel="stylesheet" href="../vendors/simplebar/css/simplebar.css">
   <link rel="stylesheet" href="../css/style.css">
   <script src="../js/config.js"></script>
@@ -158,8 +160,10 @@
     .vd-cab strong { font-weight: 600; }
   </style>
 </head>
-<body>
-  <?php include '../Barra_Lateral.php'; ?>
+<body
+  data-puede-anular="<?php echo tiene_permiso('ventas.anular') ? '1' : '0'; ?>"
+  data-puede-registrar="<?php echo tiene_permiso('ventas.registrar') ? '1' : '0'; ?>">
+  <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
 
     <div class="body flex-grow-1 px-3">
       <div class="container-fluid lp">
@@ -180,7 +184,9 @@
                 <input id="table-filter" type="search" placeholder="Buscar por código o cliente..." aria-label="Buscar ventas por código o cliente" autocomplete="off">
               </label>
 
-              <a href="Ventas.php" class="lp-btn"><i class="bi bi-cart-plus" aria-hidden="true"></i> Nueva venta</a>
+              <?php if (tiene_permiso('ventas.registrar')): ?>
+                <a href="Ventas.php" class="lp-btn"><i class="bi bi-cart-plus" aria-hidden="true"></i> Nueva venta</a>
+              <?php endif; ?>
 
               <div class="lp-filtros">
                 <button type="button" id="btnFiltros" class="lp-btn-filtros" aria-expanded="false" aria-controls="panelFiltros">
@@ -190,11 +196,11 @@
                   <div class="lp-fechas mb-3">
                     <div>
                       <label class="lp-et" for="fecha-desde">Desde</label>
-                      <input type="date" id="fecha-desde">
+                      <input type="date" id="fecha-desde" autocomplete="off">
                     </div>
                     <div>
                       <label class="lp-et" for="fecha-hasta">Hasta</label>
-                      <input type="date" id="fecha-hasta">
+                      <input type="date" id="fecha-hasta" autocomplete="off">
                     </div>
                   </div>
                   <div class="mb-3">
@@ -239,7 +245,11 @@
             <div class="lp-vacio-txt">
               <h2 id="vacio-titulo">No hay ventas para mostrar</h2>
               <p id="vacio-texto">Aún no se han registrado ventas en el sistema. Puedes registrar una nueva venta o ajustar tus filtros.</p>
-              <a id="vacio-accion" href="Ventas.php" class="lp-btn"><i class="bi bi-plus-lg" aria-hidden="true"></i> Registrar Venta</a>
+              <?php if (tiene_permiso('ventas.registrar')): ?>
+                <a id="vacio-accion" href="Ventas.php" class="lp-btn"><i class="bi bi-plus-lg" aria-hidden="true"></i> Registrar Venta</a>
+              <?php else: ?>
+                <button type="button" id="vacio-accion" class="lp-btn" hidden><i class="bi bi-plus-lg" aria-hidden="true"></i> Registrar Venta</button>
+              <?php endif; ?>
             </div>
           </div>
 
@@ -260,7 +270,7 @@
     </div>
 
     <footer class="footer px-4">
-      <div>Comercial X &copy; 2026.</div>
+      <div>Casa Aurelia &copy; 2026.</div>
     </footer>
 
     </div> <!-- cierra <div class="wrapper"> que se abrio en Barra_Lateral.php -->
@@ -295,6 +305,9 @@
             </div>
           </div>
           <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="btnImprimirFactura" disabled>
+              <i class="bi bi-printer me-1" aria-hidden="true"></i> Imprimir factura
+            </button>
             <button type="button" class="btn btn-secondary" data-cerrar>Cerrar</button>
           </div>
         </div>
@@ -303,8 +316,8 @@
 
     <script src="../vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
     <script src="../vendors/simplebar/js/simplebar.min.js"></script>
-    <script src="../js/Notificaciones.js?v=<?php echo filemtime('../js/Notificaciones.js'); ?>"></script>
+    <script src="../js/Notificaciones.js?v=<?php echo filemtime(__DIR__ . '/../js/Notificaciones.js'); ?>"></script>
 
-  <script src="../js/JSLista_Ventas.js?v=<?php echo filemtime('../js/JSLista_Ventas.js'); ?>"></script>
+  <script src="../js/JSLista-ventas.js?v=<?php echo filemtime(__DIR__ . '/../js/JSLista-ventas.js'); ?>"></script>
 </body>
 </html>

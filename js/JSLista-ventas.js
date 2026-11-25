@@ -26,9 +26,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const pager = document.getElementById("table-pagination");
     const contador = document.getElementById("total-registros");
     const vacio = document.getElementById("estado-vacio");
+    const puedeAnular = document.body.dataset.puedeAnular === "1";
+    const puedeRegistrar = document.body.dataset.puedeRegistrar === "1";
 
     const modalEl = document.getElementById("modalDetalle");
     const modalDetalle = coreui.Modal.getOrCreateInstance(modalEl);
+    const btnImprimirFactura = document.getElementById("btnImprimirFactura");
+    let detalleVentaActual = null;
 
     // Estado de la pantalla
     let ventas = [];
@@ -142,7 +146,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <button type="button" class="lp-ib btn-detalle" title="Ver detalle" aria-label="Ver detalle">
                         <i class="bi bi-eye" aria-hidden="true"></i>
                     </button>
-                    ${anulada ? "" : `
+                    ${anulada || !puedeAnular || v.tipo_venta === "credito" ? "" : `
                     <button type="button" class="lp-ib baja btn-anular" title="Anular venta" aria-label="Anular venta">
                         <i class="bi bi-slash-circle" aria-hidden="true"></i>
                     </button>`}
@@ -163,7 +167,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        accion.hidden = false;
         if (hayDatos) {
             titulo.textContent = "Sin resultados";
             detalle.textContent = "Ninguna venta coincide con los filtros aplicados.";
@@ -171,7 +174,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else {
             titulo.textContent = "No hay ventas para mostrar";
             detalle.textContent = "Aún no se han registrado ventas en el sistema. Puedes registrar una nueva venta o ajustar tus filtros.";
-            accion.outerHTML = '<a id="vacio-accion" href="Ventas.php" class="lp-btn"><i class="bi bi-plus-lg"></i> Registrar Venta</a>';
+            if (puedeRegistrar) {
+                accion.outerHTML = '<a id="vacio-accion" href="Ventas.php" class="lp-btn"><i class="bi bi-plus-lg"></i> Registrar Venta</a>';
+            } else {
+                accion.hidden = true;
+            }
         }
     }
 
@@ -297,7 +304,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     modalEl.querySelectorAll("[data-cerrar]").forEach((b) => b.addEventListener("click", () => modalDetalle.hide()));
 
+    btnImprimirFactura.addEventListener("click", () => {
+        if (!detalleVentaActual) return;
+        window.location.href = `FacturaVenta.php?id_venta=${encodeURIComponent(detalleVentaActual.id_venta)}`;
+    });
+
     async function verDetalle(venta) {
+        detalleVentaActual = null;
+        btnImprimirFactura.disabled = true;
         try {
             const datos = new FormData();
             datos.append("opcion", "consultarDetalle");
@@ -314,6 +328,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             const v = r.venta;
+            detalleVentaActual = v;
+            btnImprimirFactura.disabled = false;
             document.getElementById("detalleTitulo").textContent = "Detalle de la venta " + codigo(v.id_venta);
             document.getElementById("detalle-cabecera").innerHTML = `
                 <div><small>Fecha</small><strong>${fechaBonita(v.fecha_hora)}</strong></div>

@@ -7,7 +7,7 @@ include_once(__DIR__ . '/../config.php');?>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Producto - Comercial X</title>
+  <title>Producto - Casa Aurelia</title>
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>vendors/simplebar/css/simplebar.css">
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/vendors/simplebar.css">
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/style.css">
@@ -20,7 +20,7 @@ include_once(__DIR__ . '/../config.php');?>
 </head>
 <body>
 
-  <?php include '../Barra_Lateral.php'; ?>
+  <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
 
     <div class="body flex-grow-1 px-3">
       <div class="container-lg">
@@ -37,13 +37,13 @@ include_once(__DIR__ . '/../config.php');?>
               <div class="row mb-3">
                 <div class="col-md-6">
                   <label for="nombre" class="form-label">Nombre del Producto *</label>
-                  <input type="text" class="form-control" id="nombre" name="nombre" maxlength="120" required placeholder="Ej. Computadora de Escritorio" autocomplete="off">
+                  <input type="text" class="form-control" id="nombre" name="nombre" maxlength="120" required placeholder="Ej. Cocina electrica" autocomplete="off">
                 </div>
                 
                 <div class="col-md-6">
-                  <label for="id_categoria" class="form-label">Categoría *</label>
+                  <label for="id_categoria" class="form-label">Subcategoría *</label>
                   <select class="form-select" id="id_categoria" name="id_categoria" required>
-                    <option value="0">[SELECCIONE CATEGORÍA]</option>
+                    <option value="0">[SELECCIONE SUBCATEGORÍA]</option>
                   </select>
                 </div>
               </div>
@@ -57,16 +57,16 @@ include_once(__DIR__ . '/../config.php');?>
               </div>
 
               <!-- Fila 3: Dimensiones -->
-              <div class="row mb-3">
-                <div class="col-md-4">
+              <div class="row mb-3" data-grupo-medidas="1">
+                <div class="col-md-4" data-campo-base="alto_cm">
                   <label for="alto_cm" class="form-label">Alto (cm)</label>
                   <input type="number" step="0.01" min="0" class="form-control" id="alto_cm" name="alto_cm" placeholder="0.00" autocomplete="off">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" data-campo-base="ancho_cm">
                   <label for="ancho_cm" class="form-label">Ancho (cm)</label>
                   <input type="number" step="0.01" min="0" class="form-control" id="ancho_cm" name="ancho_cm" placeholder="0.00" autocomplete="off">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" data-campo-base="profundidad_cm">
                   <label for="profundidad_cm" class="form-label">Profundidad (cm)</label>
                   <input type="number" step="0.01" min="0" class="form-control" id="profundidad_cm" name="profundidad_cm" placeholder="0.00" autocomplete="off">
                 </div>
@@ -74,11 +74,11 @@ include_once(__DIR__ . '/../config.php');?>
 
               <!-- Fila 4: Peso, Material y Stock Mínimo -->
               <div class="row mb-3">
-                <div class="col-md-4">
+                <div class="col-md-4" data-campo-base="peso_kg">
                   <label for="peso_kg" class="form-label">Peso (Kg)</label>
                   <input type="number" step="0.01" min="0" class="form-control" id="peso_kg" name="peso_kg" placeholder="0.00" autocomplete="off">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" data-campo-base="material">
                   <label for="material" class="form-label">Material</label>
                   <input type="text" class="form-control" id="material" name="material" maxlength="50" placeholder="Ej. Plástico / Aluminio" autocomplete="off">
                 </div>
@@ -87,6 +87,14 @@ include_once(__DIR__ . '/../config.php');?>
                   <input type="number" min="0" class="form-control" id="stock_minimo" name="stock_minimo" value="0" required autocomplete="off">
                 </div>
               </div>
+
+              <section class="border rounded p-3 mb-4" aria-labelledby="tituloEspecificaciones">
+                <h5 id="tituloEspecificaciones" class="h6 mb-1">Especificaciones de la subcategoría</h5>
+                <p id="ayudaEspecificaciones" class="form-text mb-3" aria-live="polite">
+                  Selecciona una subcategoría para mostrar sus campos específicos.
+                </p>
+                <div id="camposEspecificaciones" class="row g-3"></div>
+              </section>
 
               <div class="d-flex justify-content-end gap-2">
                 <button type="button" id="btnCancelar" class="btn btn-secondary">Cancelar</button>
@@ -102,14 +110,14 @@ include_once(__DIR__ . '/../config.php');?>
     </div>
 
     <footer class="footer px-4">
-      <div>Comercial X &copy; 2026.</div>
+      <div>Casa Aurelia &copy; 2026.</div>
     </footer>
 
   </div> <!-- Cierra el wrapper de la Barra_Lateral.php -->
 
   <script src="<?php echo BASE_URL; ?>vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
   <script src="<?php echo BASE_URL; ?>vendors/simplebar/js/simplebar.min.js"></script>
-  <script src="<?php echo BASE_URL; ?>js/Notificaciones.js?v=<?php echo filemtime('../js/Notificaciones.js'); ?>"></script>
-  <script src="<?php echo BASE_URL; ?>js/JSProductos.js?v=<?php echo filemtime('../js/JSProductos.js'); ?>"></script>
+  <script src="<?php echo BASE_URL; ?>js/Notificaciones.js?v=<?php echo filemtime(__DIR__ . '/../js/Notificaciones.js'); ?>"></script>
+  <script src="<?php echo BASE_URL; ?>js/JSProductos.js?v=<?php echo filemtime(__DIR__ . '/../js/JSProductos.js'); ?>"></script>
 </body>
 </html>

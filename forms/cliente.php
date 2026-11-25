@@ -1,6 +1,7 @@
 <?php
 include_once(__DIR__ . '/../config.php');
 $id_cliente = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: '';
+$desdeVenta = ($_GET['retorno'] ?? '') === 'venta' && !$id_cliente;
 $titulo_pagina = $id_cliente ? 'Modificar cliente' : 'Registrar cliente';
 ?>
 <!DOCTYPE html>
@@ -8,7 +9,7 @@ $titulo_pagina = $id_cliente ? 'Modificar cliente' : 'Registrar cliente';
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?php echo htmlspecialchars($titulo_pagina, ENT_QUOTES, 'UTF-8'); ?> - Comercial X</title>
+  <title><?php echo htmlspecialchars($titulo_pagina, ENT_QUOTES, 'UTF-8'); ?> - Casa Aurelia</title>
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>vendors/simplebar/css/simplebar.css">
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/vendors/simplebar.css">
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/style.css">
@@ -20,7 +21,7 @@ $titulo_pagina = $id_cliente ? 'Modificar cliente' : 'Registrar cliente';
   </style>
 </head>
 <body>
-  <?php include '../Barra_Lateral.php'; ?>
+  <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
 
   <div class="body flex-grow-1 px-3">
     <main class="container-lg cliente-formulario">
@@ -37,7 +38,7 @@ $titulo_pagina = $id_cliente ? 'Modificar cliente' : 'Registrar cliente';
 
         <div class="card-body">
           <form id="formCliente" autocomplete="off" novalidate>
-            <input type="hidden" id="id_cliente" name="id_cliente" value="<?php echo htmlspecialchars((string) $id_cliente, ENT_QUOTES, 'UTF-8'); ?>">
+            <input type="hidden" id="id_cliente" name="id_cliente" value="<?php echo htmlspecialchars((string) $id_cliente, ENT_QUOTES, 'UTF-8'); ?>" autocomplete="off">
 
             <div class="row g-3">
               <div class="col-12 col-md-6">
@@ -63,15 +64,19 @@ $titulo_pagina = $id_cliente ? 'Modificar cliente' : 'Registrar cliente';
               </div>
               <div class="col-12 col-md-8">
                 <label for="correo_electronico" class="form-label">Correo electrónico *</label>
-                <input type="email" class="form-control" id="correo_electronico" name="correo_electronico" maxlength="100" required autocomplete="email">
+                <input type="email" class="form-control" id="correo_electronico" name="correo_electronico" maxlength="100" required autocomplete="off">
               </div>
-              <div class="col-12 col-md-4">
-                <label for="estado" class="form-label">Estado *</label>
-                <select class="form-select" id="estado" name="estado" required>
-                  <option value="activo">Activo</option>
-                  <option value="inactivo">Inactivo</option>
-                </select>
-              </div>
+              <?php if ($desdeVenta): ?>
+                <input type="hidden" id="estado" name="estado" value="activo" autocomplete="off">
+              <?php else: ?>
+                <div class="col-12 col-md-4">
+                  <label for="estado" class="form-label">Estado *</label>
+                  <select class="form-select" id="estado" name="estado" required>
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                  </select>
+                </div>
+              <?php endif; ?>
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4">
@@ -86,7 +91,7 @@ $titulo_pagina = $id_cliente ? 'Modificar cliente' : 'Registrar cliente';
     </main>
   </div>
 
-  <footer class="footer px-4"><div>Comercial X &copy; 2026.</div></footer>
+  <footer class="footer px-4"><div>Casa Aurelia &copy; 2026.</div></footer>
   </div><!-- Cierra el wrapper de Barra_Lateral.php -->
 
   <script src="<?php echo BASE_URL; ?>vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>

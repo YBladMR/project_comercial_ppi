@@ -214,7 +214,10 @@ if ($opcion === "guardar") {
                                                    VALUES (?, 0, 0)
                                                    ON DUPLICATE KEY UPDATE id_producto=VALUES(id_producto)");
         $stmtInventarioLeer = $conexion->prepare("SELECT existencia, costo_promedio FROM inventario WHERE id_producto=? FOR UPDATE");
-        $stmtInventarioActualizar = $conexion->prepare("UPDATE inventario SET existencia=?, costo_promedio=? WHERE id_producto=?");
+        $stmtInventarioActualizar = $conexion->prepare("UPDATE inventario
+            SET fecha_actualizacion=IF(costo_promedio<>?, CURRENT_TIMESTAMP, fecha_actualizacion),
+                existencia=?, costo_promedio=?
+            WHERE id_producto=?");
         $stmtPrecio = $conexion->prepare("UPDATE producto SET precio_venta=? WHERE id_producto=?");
         $stmtKardex = $conexion->prepare("INSERT INTO kardex
             (id_producto, id_tipo_movimiento, id_usuario, id_compra, cantidad, costo_unitario, existencias, costo_promedio, saldo_total)
@@ -246,6 +249,7 @@ if ($opcion === "guardar") {
             $existenciaNueva = $existenciaAnterior + $cantidad;
             if ($existenciaNueva > 4294967295) throw new DomainException("La existencia supera el límite permitido");
 
+            // Recalculando el costo promedio con cada compra
             $costoPromedioNuevo = $existenciaAnterior === 0
                 ? round($costoUnitario, 2)
                 : round((($existenciaAnterior * $costoAnterior) + ($cantidad * $costoUnitario)) / $existenciaNueva, 2);
@@ -256,7 +260,7 @@ if ($opcion === "guardar") {
             $precioVenta = calcularPrecioVenta($costoPromedioNuevo, $margen);
             $saldoTotal = round($existenciaNueva * $costoPromedioNuevo, 2);
 
-            $stmtInventarioActualizar->bind_param("idi", $existenciaNueva, $costoPromedioNuevo, $idProducto);
+            $stmtInventarioActualizar->bind_param("didi", $costoPromedioNuevo, $existenciaNueva, $costoPromedioNuevo, $idProducto);
             if (!$stmtInventarioActualizar->execute()) throw new RuntimeException("No se pudo actualizar el inventario");
             $stmtPrecio->bind_param("di", $precioVenta, $idProducto);
             if (!$stmtPrecio->execute()) throw new RuntimeException("No se pudo recalcular el precio de venta");
@@ -325,7 +329,10 @@ if ($opcion === "anular") {
         $stmtProducto = $conexion->prepare("SELECT p.margen_ganancia
                                            FROM producto AS p
                                            WHERE p.id_producto=? FOR UPDATE");
-        $stmtActualizarInventario = $conexion->prepare("UPDATE inventario SET existencia=?, costo_promedio=? WHERE id_producto=?");
+        $stmtActualizarInventario = $conexion->prepare("UPDATE inventario
+            SET fecha_actualizacion=IF(costo_promedio<>?, CURRENT_TIMESTAMP, fecha_actualizacion),
+                existencia=?, costo_promedio=?
+            WHERE id_producto=?");
         $stmtActualizarPrecio = $conexion->prepare("UPDATE producto SET precio_venta=? WHERE id_producto=?");
         $stmtKardex = $conexion->prepare("INSERT INTO kardex
             (id_producto, id_tipo_movimiento, id_usuario, id_compra, cantidad, costo_unitario, existencias, costo_promedio, saldo_total)
@@ -374,7 +381,7 @@ if ($opcion === "anular") {
             $precioVenta = calcularPrecioVenta($costoPromedioNuevo, $margen);
             $saldoTotal = round($existenciaNueva * $costoPromedioNuevo, 2);
 
-            $stmtActualizarInventario->bind_param("idi", $existenciaNueva, $costoPromedioNuevo, $idProducto);
+            $stmtActualizarInventario->bind_param("didi", $costoPromedioNuevo, $existenciaNueva, $costoPromedioNuevo, $idProducto);
             if (!$stmtActualizarInventario->execute()) throw new RuntimeException("No se pudo revertir el inventario");
             $stmtActualizarPrecio->bind_param("di", $precioVenta, $idProducto);
             if (!$stmtActualizarPrecio->execute()) throw new RuntimeException("No se pudo recalcular el precio");

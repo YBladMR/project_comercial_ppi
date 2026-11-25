@@ -9,7 +9,7 @@ include_once __DIR__ . '/../config.php';
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?php echo htmlspecialchars($titulo_pagina, ENT_QUOTES, 'UTF-8'); ?> - Comercial X</title>
+  <title><?php echo htmlspecialchars($titulo_pagina, ENT_QUOTES, 'UTF-8'); ?> - Casa Aurelia</title>
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>vendors/simplebar/css/simplebar.css">
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/style.css">
   <script src="<?php echo BASE_URL; ?>js/config.js"></script>
@@ -65,8 +65,8 @@ include_once __DIR__ . '/../config.php';
         <div class="kd-filters row g-2 align-items-end">
           <div class="col-12 col-md-4"><label for="filtroProductoKardex" class="form-label small mb-1">Producto</label><select id="filtroProductoKardex" class="form-select form-select-sm"><option value="">Todos los productos</option></select></div>
           <div class="col-12 col-md-3"><label for="filtroTipoKardex" class="form-label small mb-1">Tipo de movimiento</label><select id="filtroTipoKardex" class="form-select form-select-sm"><option value="">Todos los tipos</option></select></div>
-          <div class="col-6 col-md-2"><label for="filtroDesdeKardex" class="form-label small mb-1">Desde</label><input id="filtroDesdeKardex" class="form-control form-control-sm" type="date"></div>
-          <div class="col-6 col-md-2"><label for="filtroHastaKardex" class="form-label small mb-1">Hasta</label><input id="filtroHastaKardex" class="form-control form-control-sm" type="date"></div>
+          <div class="col-6 col-md-2"><label for="filtroDesdeKardex" class="form-label small mb-1">Desde</label><input id="filtroDesdeKardex" class="form-control form-control-sm" type="date" autocomplete="off"></div>
+          <div class="col-6 col-md-2"><label for="filtroHastaKardex" class="form-label small mb-1">Hasta</label><input id="filtroHastaKardex" class="form-control form-control-sm" type="date" autocomplete="off"></div>
           <div class="col-12 col-md-1 d-grid"><button type="button" id="limpiarKardex" class="btn btn-sm btn-outline-secondary" title="Limpiar filtros"><i class="bi bi-x-circle" aria-hidden="true"></i><span class="d-md-none ms-1">Limpiar</span></button></div>
         </div>
         <div class="kd-table-wrap" id="tablaKardex" hidden>
@@ -86,7 +86,7 @@ include_once __DIR__ . '/../config.php';
       </section>
     </main>
   </div>
-  <footer class="footer px-4"><div>Comercial X &copy; 2026.</div></footer>
+  <footer class="footer px-4"><div>Casa Aurelia &copy; 2026.</div></footer>
   </div>
   <script src="<?php echo BASE_URL; ?>vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
   <script src="<?php echo BASE_URL; ?>vendors/simplebar/js/simplebar.min.js"></script>

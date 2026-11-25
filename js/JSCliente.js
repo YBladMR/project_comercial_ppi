@@ -16,6 +16,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     const mensajeDUI = document.getElementById("mensajeDUI");
     const tituloFormulario = document.getElementById("tituloFormulario");
     const urlDao = "../dao/DAOCliente.php";
+    const desdeVenta = new URLSearchParams(window.location.search).get("retorno") === "venta";
+    const claveBorradorVenta = "comercial_venta_borrador";
 
     function notificarError(mensaje) {
         notificar("danger", mensaje);
@@ -82,7 +84,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     botonCancelar.addEventListener("click", function () {
-        window.location.href = "lista-cliente.php";
+        window.location.href = desdeVenta ? "Ventas.php?continuar=1" : "lista-cliente.php";
     });
 
     formulario.addEventListener("submit", async function (evento) {
@@ -136,6 +138,25 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
 
             notificar("success", resultado.mensaje || "Cliente guardado correctamente.");
+            if (desdeVenta && !idCliente.value) {
+                let borrador = {};
+                try {
+                    borrador = JSON.parse(sessionStorage.getItem(claveBorradorVenta) || "{}");
+                    if (!borrador || typeof borrador !== "object") borrador = {};
+                } catch (error) {
+                    borrador = {};
+                }
+                borrador.cliente = {
+                    id_cliente: resultado.id_cliente,
+                    nombre: `${nombre.value} ${apellido.value}`.trim(),
+                    dui: dui.value
+                };
+                sessionStorage.setItem(claveBorradorVenta, JSON.stringify(borrador));
+                setTimeout(function () {
+                    window.location.href = "Ventas.php?continuar=1";
+                }, 700);
+                return;
+            }
             setTimeout(function () {
                 window.location.href = "lista-cliente.php";
             }, 1200);

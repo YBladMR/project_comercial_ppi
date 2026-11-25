@@ -3,17 +3,17 @@ require_once __DIR__ . '/../autenticacion/seguridad.php';
 
 $mensajeError = (string) ($_SESSION['mensaje_login'] ?? '');
 unset($_SESSION['mensaje_login']);
+$mensajeConfirmacion = '';
 $usuarioIngresado = '';
-$mensajeEsExito = isset($_GET['salida']) || isset($_GET['registro']);
 
 if (isset($_GET['salida'])) {
-    $mensajeError = 'La sesión se cerró correctamente.';
+    $mensajeConfirmacion = 'La sesión se cerró correctamente.';
 } elseif (isset($_GET['registro'])) {
-    $mensajeError = 'Las cuentas son creadas por un administrador.';
+    $mensajeConfirmacion = 'Las cuentas son creadas por un administrador.';
 }
 
 if (esta_autenticado()) {
-    requerir_permiso('panel.ver');
+    requerir_autenticacion();
     header('Location: ' . BASE_URL . 'index.php');
     exit;
 }
@@ -30,18 +30,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         require_once __DIR__ . '/../conexion.php';
 
         try {
-            $sql = "SELECT u.id_usuario, u.usuario, u.contrasena, u.nombre, u.id_rol,
+            $indiceUsuario = crear_indice_usuario($usuarioIngresado);
+            $sql = "SELECT u.id_usuario, u.usuario, u.usuario_indice, u.contrasena, u.nombre,
+                           u.debe_cambiar_contrasena,
                            u.estado, r.nombre AS rol
                     FROM usuario AS u
                     INNER JOIN rol AS r ON r.id_rol = u.id_rol
-                    WHERE u.usuario = ?
+                    WHERE u.usuario_indice = ?
+                       OR (u.usuario_indice IS NULL AND u.usuario = ?)
                     LIMIT 1";
             $stmt = $conexion->prepare($sql);
             if (!$stmt) {
                 throw new RuntimeException('No se pudo preparar la consulta de inicio de sesión.');
             }
 
-            $stmt->bind_param('s', $usuarioIngresado);
+            $stmt->bind_param('ss', $indiceUsuario, $usuarioIngresado);
             $stmt->execute();
             $resultado = $stmt->get_result();
             $usuario = $resultado ? $resultado->fetch_assoc() : null;
@@ -60,6 +63,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($usuario && $usuario['estado'] === 'activo'
                 && password_verify($contrasenaIngresada, $usuario['contrasena'])) {
 
+                // Las cuentas existentes con una clave anterior a la política
+                // deben actualizarla después de autenticarse correctamente.
+                $debeCambiarContrasena = (bool) $usuario['debe_cambiar_contrasena'];
+                if (validar_politica_contrasena($contrasenaIngresada) !== null) {
+                    $debeCambiarContrasena = true;
+                    if (empty($usuario['debe_cambiar_contrasena'])) {
+                        $stmtPolitica = $conexion->prepare(
+                            'UPDATE usuario SET debe_cambiar_contrasena = 1 WHERE id_usuario = ? AND estado = \'activo\''
+                        );
+                        if (!$stmtPolitica) {
+                            throw new RuntimeException('No se pudo solicitar el cambio de contraseña.');
+                        }
+                        $stmtPolitica->bind_param('i', $usuario['id_usuario']);
+                        $stmtPolitica->execute();
+                        $stmtPolitica->close();
+                    }
+                }
+
+                // Convierte las cuentas existentes al nuevo formato durante
+                // su siguiente login. El fallback anterior solo aplica a filas
+                // que aún no tienen índice HMAC.
+                $usuarioLegible = $usuario['usuario_indice'] === null
+                    ? (string) $usuario['usuario']
+                    : descifrar_usuario((string) $usuario['usuario']);
+                if ($usuario['usuario_indice'] === null) {
+                    $usuarioCifrado = cifrar_usuario($usuarioLegible);
+                    $nuevoIndice = crear_indice_usuario($usuarioLegible);
+                    $stmtUsuario = $conexion->prepare(
+                        'UPDATE usuario SET usuario = ?, usuario_indice = ?
+                         WHERE id_usuario = ? AND usuario_indice IS NULL'
+                    );
+                    if (!$stmtUsuario) {
+                        throw new RuntimeException('No se pudo proteger el nombre de usuario.');
+                    }
+                    $stmtUsuario->bind_param('ssi', $usuarioCifrado, $nuevoIndice, $usuario['id_usuario']);
+                    $stmtUsuario->execute();
+                    $stmtUsuario->close();
+                }
+
                 // Si PHP recomienda un algoritmo/costo más reciente, se renueva
                 // el hash después de autenticar; password_hash genera otra sal.
                 if (password_needs_rehash($usuario['contrasena'], PASSWORD_DEFAULT)) {
@@ -76,15 +118,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 session_regenerate_id(true);
                 $_SESSION = [
                     'id_usuario' => (int) $usuario['id_usuario'],
-                    'usuario' => $usuario['usuario'],
+                    'usuario' => $usuarioLegible,
                     'nombre' => $usuario['nombre'],
-                    'id_rol' => (int) $usuario['id_rol'],
                     'rol' => $usuario['rol'],
+                    'debe_cambiar_contrasena' => $debeCambiarContrasena,
                     'ultimo_acceso' => time(),
                     'token_csrf' => bin2hex(random_bytes(32)),
                 ];
 
-                header('Location: ' . BASE_URL . 'index.php');
+                $destino = $debeCambiarContrasena
+                    ? 'autenticacion/cambiar_contrasena.php'
+                    : 'index.php';
+                header('Location: ' . BASE_URL . $destino);
                 exit;
             }
 
@@ -142,6 +187,13 @@ $tokenCsrf = obtener_token_csrf();
     <link href="css/style.css" rel="stylesheet">
     <!-- We use those styles to show code examples, you should remove them in your application.-->
     <link href="css/examples.css" rel="stylesheet">
+    <style>
+      /* Evita que Edge muestre su propio control sobre el botón de la plantilla. */
+      #contrasena::-ms-reveal,
+      #contrasena::-ms-clear {
+        display: none;
+      }
+    </style>
     <script src="js/config.js"></script>
     <script src="js/color-modes.js"></script>
   </head>
@@ -163,16 +215,11 @@ $tokenCsrf = obtener_token_csrf();
           <div class="card p-4">
             <div class="card-body d-flex flex-column gap-4">
               <h2 class="h5 text-center">Inicia sesión en tu cuenta</h2>
-              <?php if ($mensajeError !== ''): ?>
-                <div class="alert <?php echo $mensajeEsExito ? 'alert-success' : 'alert-danger'; ?> text-start mb-0" role="alert">
-                  <?php echo htmlspecialchars($mensajeError, ENT_QUOTES, 'UTF-8'); ?>
-                </div>
-              <?php endif; ?>
-              <form class="row gap-3" action="<?php echo BASE_URL; ?>autenticacion/login.php" method="post" autocomplete="on">
-                <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars($tokenCsrf, ENT_QUOTES, 'UTF-8'); ?>">
+              <form class="row gap-3" action="<?php echo BASE_URL; ?>autenticacion/login.php" method="post" autocomplete="off">
+                <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars($tokenCsrf, ENT_QUOTES, 'UTF-8'); ?>" autocomplete="off">
                 <div>
                   <label class="form-label" for="usuario">Usuario</label>
-                  <input class="form-control" id="usuario" name="usuario" type="text" value="<?php echo htmlspecialchars($usuarioIngresado, ENT_QUOTES, 'UTF-8'); ?>" placeholder="Tu usuario" autocomplete="username" maxlength="50" required>
+                  <input class="form-control" id="usuario" name="usuario" type="text" value="<?php echo htmlspecialchars($usuarioIngresado, ENT_QUOTES, 'UTF-8'); ?>" placeholder="Tu usuario" autocomplete="off" maxlength="50" required>
                 </div>
                 <div>
                   <div class="d-flex justify-content-between">
@@ -180,9 +227,9 @@ $tokenCsrf = obtener_token_csrf();
                     <span class="small text-body-secondary">¿Olvidaste tu contraseña? Contacta al administrador.</span>
                   </div>
                   <div class="input-group">
-                    <input class="form-control" id="contrasena" name="contrasena" type="password" placeholder="Tu contraseña" autocomplete="current-password" required>
+                    <input class="form-control" id="contrasena" name="contrasena" type="password" placeholder="Tu contraseña" autocomplete="off" required>
                     <span class="input-group-text">
-                      <button class="bg-transparent border-0 p-0 link-secondary" type="button" data-coreui-toggle="tooltip" aria-label="Mostrar contraseña" data-coreui-original-title="Mostrar contraseña">
+                      <button id="alternarContrasena" class="bg-transparent border-0 p-0 link-secondary" type="button" aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar contraseña">
                         <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                           <path class="ci-primary" fill="var(--ci-primary-color, currentcolor)" d="M256 144.927a103.309 103.309 0 1 0 103.309 103.309A103.426 103.426 0 0 0 256 144.927m0 174.618a71.309 71.309 0 1 1 71.309-71.309A71.39 71.39 0 0 1 256 319.545"></path>
                           <path class="ci-primary" fill="var(--ci-primary-color, currentcolor)" d="m397.222 131.1-.218-.223c-77.75-77.749-204.258-77.749-282.008 0L16 233.79v28.893l98.778 102.689.218.222a199.41 199.41 0 0 0 282.008 0l99-102.911V233.79ZM464 249.79l-89.732 93.285a167.41 167.41 0 0 1-236.536 0L48 249.79v-3.107l89.729-93.283c65.247-65.13 171.3-65.13 236.542 0L464 246.683Z"></path>
@@ -195,6 +242,15 @@ $tokenCsrf = obtener_token_csrf();
                 <p class="small text-body-secondary mb-0">La sesión se cerrará después de 30 minutos de inactividad.</p>
                 <div>
                   <button class="btn btn-primary w-100" type="submit">Ingresar</button>
+                  <?php if ($mensajeError !== ''): ?>
+                    <p class="small text-danger-emphasis text-center mt-2 mb-0" role="alert">
+                      <?php echo htmlspecialchars($mensajeError, ENT_QUOTES, 'UTF-8'); ?>
+                    </p>
+                  <?php elseif ($mensajeConfirmacion !== ''): ?>
+                    <p class="small text-success-emphasis text-center mt-2 mb-0" role="status">
+                      <?php echo htmlspecialchars($mensajeConfirmacion, ENT_QUOTES, 'UTF-8'); ?>
+                    </p>
+                  <?php endif; ?>
                 </div>
               </form>
               <div class="position-relative d-none">
@@ -217,7 +273,7 @@ $tokenCsrf = obtener_token_csrf();
             </div>
           </div>
           <div class="text-center text-body-secondary">
-            Las cuentas son creadas por un administrador.
+            Las cuentas son creadas por tu administrador.
           </div>
         </div>
       </div>
@@ -237,6 +293,21 @@ $tokenCsrf = obtener_token_csrf();
     <script>
       const tooltipTriggerList = document.querySelectorAll('[data-coreui-toggle="tooltip"]');
       const tooltipList = [...tooltipTriggerList].map((tooltipTriggerEl) => new coreui.Tooltip(tooltipTriggerEl));
+    </script>
+    <script>
+      const campoContrasena = document.getElementById("contrasena");
+      const botonAlternarContrasena = document.getElementById("alternarContrasena");
+
+      if (campoContrasena && botonAlternarContrasena) {
+        botonAlternarContrasena.addEventListener("click", () => {
+          const mostrar = campoContrasena.type === "password";
+          campoContrasena.type = mostrar ? "text" : "password";
+          const etiqueta = mostrar ? "Ocultar contraseña" : "Mostrar contraseña";
+          botonAlternarContrasena.setAttribute("aria-label", etiqueta);
+          botonAlternarContrasena.setAttribute("aria-pressed", String(mostrar));
+          botonAlternarContrasena.title = etiqueta;
+        });
+      }
     </script>
   </body>
 </html>
