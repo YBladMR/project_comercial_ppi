@@ -22,14 +22,12 @@ include_once(__DIR__ . '/../config.php');
 
   <div class="body flex-grow-1 px-3">
     <div class="container-fluid lp">
-      <section class="lp-hero" aria-labelledby="titulo-compras">
-        <span class="lp-hero-icono" aria-hidden="true"><i class="bi bi-receipt-cutoff"></i></span>
+      <section class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 d-print-none" aria-labelledby="titulo-compras">
         <div class="lp-hero-texto">
           <h1 id="titulo-compras">Historial de Compras</h1>
           <p>Consulta, filtra y administra las compras registradas.</p>
         </div>
-        <a href="Compra.php" class="lp-btn-hero"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Registrar compra</a>
-        <i class="bi bi-cart-check lp-hero-deco" aria-hidden="true"></i>
+        <a href="Compra.php" class="btn btn-primary"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Registrar compra</a>
       </section>
 
       <section class="lp-resumen" aria-label="Resumen de compras">

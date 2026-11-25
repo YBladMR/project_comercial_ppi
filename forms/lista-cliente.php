@@ -21,13 +21,12 @@ include_once(__DIR__ . '/../config.php');
 
   <div class="body flex-grow-1 px-3">
     <div class="container-fluid lp">
-      <section class="lp-hero" aria-labelledby="titulo-clientes">
-        <span class="lp-hero-icono" aria-hidden="true"><i class="bi bi-people"></i></span>
+      <section class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 d-print-none" aria-labelledby="titulo-clientes">
         <div class="lp-hero-texto">
           <h1 id="titulo-clientes">Directorio de clientes</h1>
           <p>Consulta y administra la información de tus clientes.</p>
         </div>
-        <a href="cliente.php" class="lp-btn-hero"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Registrar cliente</a>
+        <a href="cliente.php" class="btn btn-primary"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Registrar cliente</a>
       </section>
 
       <section class="lp-panel" aria-label="Lista de clientes">

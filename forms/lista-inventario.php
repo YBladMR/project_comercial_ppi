@@ -21,11 +21,10 @@ include_once __DIR__ . '/../config.php';
   <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
   <div class="body flex-grow-1 px-3">
     <main class="container-fluid li">
-      <section class="li-hero">
-        <span class="li-hero-icono"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+      <section class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 d-print-none">
         <div>
-          <h1>Existencias de inventario</h1>
-          <p>Consulta existencias, costo promedio y ubicación de cada producto.</p>
+          <h1 class="h3 mb-1">Existencias de inventario</h1>
+          <p class="text-body-secondary mb-0">Consulta existencias, costo promedio y ubicación de cada producto.</p>
         </div>
       </section>
 

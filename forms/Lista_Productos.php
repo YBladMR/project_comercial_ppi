@@ -25,15 +25,12 @@ include_once(__DIR__ . '/../config.php');?>
     <div class="body flex-grow-1 px-3">
       <div class="container-fluid lp">
 
-        <!-- Banner -->
-        <section class="lp-hero">
-          <div class="lp-hero-icono"><i class="bi bi-box-seam" aria-hidden="true"></i></div>
+        <section class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 d-print-none">
           <div class="lp-hero-texto">
             <h1>Lista de Productos</h1>
             <p>Consulta y gestiona el inventario de productos de tu negocio</p>
           </div>
-          <a href="Productos.php" class="lp-btn-hero"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Nuevo producto</a>
-          <i class="bi bi-boxes lp-hero-deco" aria-hidden="true"></i>
+          <a href="Productos.php" class="btn btn-primary"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Nuevo producto</a>
         </section>
 
         <!-- Resumen -->

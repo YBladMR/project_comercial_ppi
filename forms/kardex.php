@@ -49,11 +49,10 @@ include_once __DIR__ . '/../config.php';
   <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
   <div class="body flex-grow-1 px-3">
     <main class="container-fluid kd">
-      <section class="kd-hero">
-        <span class="kd-hero-icon"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
-        <div><h1>Kárdex de inventario</h1><p>Historial de movimientos y saldos después de cada operación.</p></div>
+      <section class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 d-print-none">
+        <div><h1 class="h3 mb-1">Kárdex de inventario</h1><p class="text-body-secondary mb-0">Historial de movimientos y saldos después de cada operación.</p></div>
         <?php if (tiene_permiso('inventario.gestionar')): ?>
-        <a class="btn btn-light ms-auto" href="<?php echo BASE_URL; ?>forms/ajustes-inventario.php"><i class="bi bi-sliders me-1" aria-hidden="true"></i> Registrar ajuste</a>
+        <a class="btn btn-primary" href="<?php echo BASE_URL; ?>forms/ajustes-inventario.php"><i class="bi bi-sliders me-1" aria-hidden="true"></i> Registrar ajuste</a>
         <?php endif; ?>
       </section>
 
