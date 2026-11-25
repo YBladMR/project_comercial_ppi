@@ -305,6 +305,9 @@ $titulo_pagina = "Lista de Ventas";
             </div>
           </div>
           <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="btnImprimirFactura" disabled>
+              <i class="bi bi-printer me-1" aria-hidden="true"></i> Imprimir factura
+            </button>
             <button type="button" class="btn btn-secondary" data-cerrar>Cerrar</button>
           </div>
         </div>

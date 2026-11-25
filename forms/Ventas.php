@@ -35,10 +35,24 @@ $titulo_pagina = "Registrar Venta";
           <div class="card-body">
             <div class="row">
               <div class="col-md-6 mb-3 mb-md-0">
-                <label for="id_cliente" class="form-label">Cliente *</label>
-                <select class="form-select" id="id_cliente" name="id_cliente" required>
-                  <option value="">[Seleccione un cliente]</option>
-                </select>
+                <label for="buscar_cliente" class="form-label">Cliente *</label>
+                <input type="hidden" id="id_cliente" name="id_cliente" value="">
+                <input type="search" class="form-control" id="buscar_cliente" autocomplete="off"
+                       placeholder="Escribe nombre, apellido o DUI" aria-describedby="ayuda_buscar_cliente">
+                <div class="form-text" id="ayuda_buscar_cliente">Empieza a escribir para buscar un cliente.</div>
+                <div class="list-group mt-2 d-none" id="resultados_clientes" role="listbox" aria-label="Resultados de clientes"></div>
+                <div class="border rounded p-2 mt-2 d-none" id="cliente_seleccionado" role="status">
+                  <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                      <div class="fw-semibold" id="texto_cliente_seleccionado"></div>
+                      <small class="text-body-secondary">DUI: <span id="dui_cliente_seleccionado"></span></small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-link p-0" id="btn_cambiar_cliente">Cambiar</button>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary mt-2 d-none" id="btn_registrar_cliente">
+                  <i class="bi bi-person-plus me-1" aria-hidden="true"></i>Registrar nuevo cliente
+                </button>
               </div>
 
               <div class="col-md-3 mb-3 mb-md-0">

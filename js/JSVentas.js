@@ -10,6 +10,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!formulario) return;
 
     const selCliente = document.getElementById("id_cliente");
+    const inpBuscarCliente = document.getElementById("buscar_cliente");
+    const resultadosClientes = document.getElementById("resultados_clientes");
+    const panelClienteSeleccionado = document.getElementById("cliente_seleccionado");
+    const textoClienteSeleccionado = document.getElementById("texto_cliente_seleccionado");
+    const duiClienteSeleccionado = document.getElementById("dui_cliente_seleccionado");
+    const ayudaBuscarCliente = document.getElementById("ayuda_buscar_cliente");
+    const btnCambiarCliente = document.getElementById("btn_cambiar_cliente");
+    const btnRegistrarCliente = document.getElementById("btn_registrar_cliente");
     const selTipo = document.getElementById("tipo_venta");
     const txtFecha = document.getElementById("fecha_hora");
     const selProducto = document.getElementById("producto");
@@ -34,10 +42,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const URL_DAO = "../dao/DAOVentas.php";
     const URL_LISTA = "Lista-ventas.php";
     const tokenCsrf = document.body.dataset.csrfToken || "";
+    const CLAVE_BORRADOR_VENTA = "comercial_venta_borrador";
     const IVA = 0.13;
 
     let productos = [];   // catálogo con existencia
     let detalle = [];     // líneas de la venta en curso
+    let clienteActivo = null;
+    let temporizadorBusqueda = null;
+    let solicitudBusqueda = 0;
 
     /* ---------------------- UTILIDADES ---------------------- */
 
@@ -175,17 +187,141 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /* ---------------------- CARGA DE DATOS ---------------------- */
 
-    async function cargarClientes() {
-        try {
-            const datos = new FormData();
-            datos.append("opcion", "consultarClientes");
-            const clientes = await peticion(datos);
+    function seleccionarCliente(cliente) {
+        solicitudBusqueda++;
+        if (temporizadorBusqueda) clearTimeout(temporizadorBusqueda);
+        clienteActivo = {
+            id_cliente: String(cliente.id_cliente),
+            nombre: cliente.nombre || "",
+            dui: cliente.dui || ""
+        };
+        selCliente.value = clienteActivo.id_cliente;
+        textoClienteSeleccionado.textContent = clienteActivo.nombre;
+        duiClienteSeleccionado.textContent = clienteActivo.dui;
+        panelClienteSeleccionado.classList.remove("d-none");
+        resultadosClientes.classList.add("d-none");
+        btnRegistrarCliente.classList.add("d-none");
+        inpBuscarCliente.value = "";
+        inpBuscarCliente.disabled = true;
+        inpBuscarCliente.classList.add("d-none");
+        ayudaBuscarCliente.classList.add("d-none");
+        inpBuscarCliente.classList.remove("is-invalid", "is-valid");
+        selCliente.classList.remove("is-invalid");
+    }
 
-            selCliente.innerHTML = '<option value="">[Seleccione un cliente]</option>' +
-                clientes.map((c) => `<option value="${esc(c.id_cliente)}">${esc(c.nombre)} — ${esc(c.dui)}</option>`).join("");
+    function limpiarClienteSeleccionado() {
+        solicitudBusqueda++;
+        if (temporizadorBusqueda) clearTimeout(temporizadorBusqueda);
+        clienteActivo = null;
+        selCliente.value = "";
+        panelClienteSeleccionado.classList.add("d-none");
+        inpBuscarCliente.disabled = false;
+        inpBuscarCliente.classList.remove("d-none");
+        ayudaBuscarCliente.classList.remove("d-none");
+        inpBuscarCliente.classList.remove("is-valid", "is-invalid");
+    }
+
+    async function buscarClientes(termino) {
+        const busqueda = termino.trim();
+        if (busqueda.length < 2) return;
+
+        const numeroSolicitud = ++solicitudBusqueda;
+        const datos = new FormData();
+        datos.append("opcion", "buscarClientes");
+        datos.append("termino", busqueda);
+        btnRegistrarCliente.classList.add("d-none");
+        resultadosClientes.classList.remove("d-none");
+        resultadosClientes.innerHTML = '<div class="list-group-item text-body-secondary">Buscando clientes...</div>';
+
+        try {
+            const clientes = await peticion(datos);
+            if (numeroSolicitud !== solicitudBusqueda) return;
+            if (!Array.isArray(clientes)) throw new Error("Respuesta de clientes no válida");
+
+            if (clientes.length === 0) {
+                ayudaBuscarCliente.textContent = "No encontramos ese cliente.";
+                resultadosClientes.innerHTML = '<div class="list-group-item text-body-secondary">No hay coincidencias.</div>';
+                btnRegistrarCliente.classList.remove("d-none");
+                return;
+            }
+
+            ayudaBuscarCliente.textContent = "Selecciona el cliente de la lista.";
+            resultadosClientes.innerHTML = clientes.map((cliente) =>
+                `<button type="button" class="list-group-item list-group-item-action" role="option"
+                         data-cliente-id="${esc(cliente.id_cliente)}"
+                         data-cliente-nombre="${esc(cliente.nombre)}"
+                         data-cliente-dui="${esc(cliente.dui)}">
+                    <span class="fw-semibold">${esc(cliente.nombre)}</span>
+                    <span class="text-body-secondary ms-2">DUI: ${esc(cliente.dui)}</span>
+                 </button>`
+            ).join("");
+            btnRegistrarCliente.classList.add("d-none");
         } catch (error) {
-            console.error("Error al cargar los clientes:", error);
-            notificar("danger", "No se pudieron cargar los clientes");
+            if (numeroSolicitud !== solicitudBusqueda) return;
+            console.error("Error al buscar clientes:", error);
+            ayudaBuscarCliente.textContent = "No se pudo completar la búsqueda.";
+            resultadosClientes.innerHTML = '<div class="list-group-item text-danger">No se pudo completar la búsqueda.</div>';
+            btnRegistrarCliente.classList.add("d-none");
+        }
+    }
+
+    function guardarBorradorVenta() {
+        const borrador = {
+            tipo_venta: selTipo.value,
+            fecha_hora: txtFecha.value,
+            detalle: detalle.map((linea) => ({
+                id_producto: linea.id_producto,
+                cantidad: linea.cantidad
+            })),
+            cliente: clienteActivo
+        };
+        try {
+            sessionStorage.setItem(CLAVE_BORRADOR_VENTA, JSON.stringify(borrador));
+            return true;
+        } catch (error) {
+            console.error("No se pudo conservar la venta en curso:", error);
+            notificar("danger", "No se pudo conservar el detalle de la venta. Intenta de nuevo.");
+            return false;
+        }
+    }
+
+    function restaurarBorradorVenta() {
+        let borrador;
+        try {
+            const guardado = sessionStorage.getItem(CLAVE_BORRADOR_VENTA);
+            if (!guardado) return;
+            borrador = JSON.parse(guardado);
+        } catch (error) {
+            sessionStorage.removeItem(CLAVE_BORRADOR_VENTA);
+            return;
+        }
+
+        if (borrador.tipo_venta === "contado" || borrador.tipo_venta === "credito") {
+            selTipo.value = borrador.tipo_venta;
+        }
+        if (borrador.fecha_hora) txtFecha.value = borrador.fecha_hora;
+        if (borrador.cliente && borrador.cliente.id_cliente) seleccionarCliente(borrador.cliente);
+
+        const sinExistencia = [];
+        if (Array.isArray(borrador.detalle)) {
+            detalle = borrador.detalle.reduce((lineas, linea) => {
+                const producto = buscarProducto(linea.id_producto);
+                const cantidad = Number(linea.cantidad);
+                if (!producto || !Number.isInteger(cantidad) || cantidad <= 0) return lineas;
+                if (cantidad > producto.existencia) sinExistencia.push(producto.nombre);
+                lineas.push({
+                    id_producto: producto.id_producto,
+                    nombre: producto.nombre,
+                    precio: producto.precio,
+                    cantidad
+                });
+                return lineas;
+            }, []);
+        }
+        dibujarDetalle();
+        sessionStorage.removeItem(CLAVE_BORRADOR_VENTA);
+        if (sinExistencia.length) {
+            notificar("warning", `Revisa la cantidad disponible de: ${[...new Set(sinExistencia)].join(", ")}.`);
         }
     }
 
@@ -305,6 +441,44 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /* ---------------------- EVENTOS ---------------------- */
 
+    inpBuscarCliente.addEventListener("input", () => {
+        if (selCliente.value) limpiarClienteSeleccionado();
+        solicitudBusqueda++;
+        btnRegistrarCliente.classList.add("d-none");
+        if (temporizadorBusqueda) clearTimeout(temporizadorBusqueda);
+
+        const termino = inpBuscarCliente.value.trim();
+        if (termino.length < 2) {
+            resultadosClientes.innerHTML = "";
+            resultadosClientes.classList.add("d-none");
+            ayudaBuscarCliente.textContent = "Empieza a escribir para buscar un cliente.";
+            return;
+        }
+
+        ayudaBuscarCliente.textContent = "Buscando coincidencias...";
+        temporizadorBusqueda = setTimeout(() => buscarClientes(termino), 300);
+    });
+
+    resultadosClientes.addEventListener("click", (evento) => {
+        const botonCliente = evento.target.closest("[data-cliente-id]");
+        if (!botonCliente) return;
+        seleccionarCliente({
+            id_cliente: botonCliente.dataset.clienteId,
+            nombre: botonCliente.dataset.clienteNombre,
+            dui: botonCliente.dataset.clienteDui
+        });
+    });
+
+    btnCambiarCliente.addEventListener("click", () => {
+        limpiarClienteSeleccionado();
+        inpBuscarCliente.focus();
+    });
+
+    btnRegistrarCliente.addEventListener("click", () => {
+        if (!guardarBorradorVenta()) return;
+        window.location.href = "cliente.php?retorno=venta";
+    });
+
     selProducto.addEventListener("change", mostrarInfoProducto);
     selTipo.addEventListener("change", actualizarPanelCredito);
     [inputPrima, inputNumeroCuotas, inputPrimerVencimiento].forEach((input) => {
@@ -352,6 +526,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const descartar = await confirmarAccion("¿Descartar la venta en curso?", "Sí, descartar", "danger");
             if (!descartar) return;
         }
+        sessionStorage.removeItem(CLAVE_BORRADOR_VENTA);
         window.location.href = URL_LISTA;
     });
 
@@ -359,8 +534,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function limpiarVenta() {
         detalle = [];
-        selCliente.value = "";
-        selCliente.classList.remove("is-invalid", "is-valid");
+        limpiarClienteSeleccionado();
+        inpBuscarCliente.value = "";
+        resultadosClientes.innerHTML = "";
+        resultadosClientes.classList.add("d-none");
+        btnRegistrarCliente.classList.add("d-none");
         selTipo.value = "contado";
         selProducto.value = "";
         inpCantidad.value = 1;
@@ -374,12 +552,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     btnGuardar.addEventListener("click", async () => {
         const clienteValido = selCliente.value !== "";
-        selCliente.classList.toggle("is-invalid", !clienteValido);
-        selCliente.classList.toggle("is-valid", clienteValido);
+        inpBuscarCliente.classList.toggle("is-invalid", !clienteValido);
+        if (clienteValido) inpBuscarCliente.classList.remove("is-valid");
 
         if (!clienteValido) {
-            notificar("danger", "Selecciona un cliente.");
-            selCliente.focus();
+            notificar("danger", "Busca y selecciona un cliente.");
+            inpBuscarCliente.focus();
             return;
         }
         if (detalle.length === 0) {
@@ -441,15 +619,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             const resultado = await peticion(datos);
 
             if (resultado.estado) {
-                const codigo = "V-" + String(resultado.id_venta).padStart(6, "0");
-                const codigoCredito = resultado.id_credito ? ` · Crédito C-${String(resultado.id_credito).padStart(6, "0")}` : "";
-                notificar("success", `${resultado.mensaje} (${codigo}${codigoCredito})`);
-
-                // Avisos de existencia en el nivel mínimo
                 (resultado.advertencias || []).forEach((a) => notificar("warning", a));
-
-                limpiarVenta();
-                await cargarProductos();   // la existencia cambió
+                sessionStorage.removeItem(CLAVE_BORRADOR_VENTA);
+                window.location.href = `FacturaVenta.php?id_venta=${encodeURIComponent(resultado.id_venta)}`;
+                return;
             } else {
                 notificar("danger", resultado.mensaje);
                 await cargarProductos();   // por si la existencia cambió mientras tanto
@@ -474,5 +647,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     inputPrimerVencimiento.value = fechaMensual(fechaLocal(hoy), 1);
     actualizarPanelCredito();
     dibujarDetalle();
-    await Promise.all([cargarClientes(), cargarProductos()]);
+    await cargarProductos();
+    restaurarBorradorVenta();
 });

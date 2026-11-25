@@ -31,6 +31,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const modalEl = document.getElementById("modalDetalle");
     const modalDetalle = coreui.Modal.getOrCreateInstance(modalEl);
+    const btnImprimirFactura = document.getElementById("btnImprimirFactura");
+    let detalleVentaActual = null;
 
     // Estado de la pantalla
     let ventas = [];
@@ -302,7 +304,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     modalEl.querySelectorAll("[data-cerrar]").forEach((b) => b.addEventListener("click", () => modalDetalle.hide()));
 
+    btnImprimirFactura.addEventListener("click", () => {
+        if (!detalleVentaActual) return;
+        window.location.href = `FacturaVenta.php?id_venta=${encodeURIComponent(detalleVentaActual.id_venta)}`;
+    });
+
     async function verDetalle(venta) {
+        detalleVentaActual = null;
+        btnImprimirFactura.disabled = true;
         try {
             const datos = new FormData();
             datos.append("opcion", "consultarDetalle");
@@ -319,6 +328,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             const v = r.venta;
+            detalleVentaActual = v;
+            btnImprimirFactura.disabled = false;
             document.getElementById("detalleTitulo").textContent = "Detalle de la venta " + codigo(v.id_venta);
             document.getElementById("detalle-cabecera").innerHTML = `
                 <div><small>Fecha</small><strong>${fechaBonita(v.fecha_hora)}</strong></div>
