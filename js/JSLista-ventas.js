@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <button type="button" class="lp-ib btn-detalle" title="Ver detalle" aria-label="Ver detalle">
                         <i class="bi bi-eye" aria-hidden="true"></i>
                     </button>
-                    ${anulada || !puedeAnular ? "" : `
+                    ${anulada || !puedeAnular || v.tipo_venta === "credito" ? "" : `
                     <button type="button" class="lp-ib baja btn-anular" title="Anular venta" aria-label="Anular venta">
                         <i class="bi bi-slash-circle" aria-hidden="true"></i>
                     </button>`}
