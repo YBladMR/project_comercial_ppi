@@ -79,7 +79,8 @@ function guardarCliente($conexion)
     if ($stmt->execute()) {
         echo json_encode([
             "resultado" => "correcto",
-            "mensaje" => "Cliente guardado correctamente"
+            "mensaje" => "Cliente guardado correctamente",
+            "id_cliente" => $conexion->insert_id
         ]);
     } else {
         echo json_encode([

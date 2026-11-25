@@ -6,6 +6,7 @@ $opcion = $_POST['opcion'] ?? $_GET['opcion'] ?? '';
 $permisosVenta = [
     'guardar' => 'ventas.registrar',
     'consultarClientes' => 'ventas.registrar',
+    'buscarClientes' => 'ventas.registrar',
     'consultarProductos' => 'ventas.registrar',
     'consultar' => 'ventas.consultar',
     'consultarDetalle' => 'ventas.consultar',
@@ -292,6 +293,43 @@ if ($opcion == "anular") {
  * ============================================================ */
 
 // Clientes activos para el select del formulario
+if ($opcion == "buscarClientes") {
+    require_once "../conexion.php";
+
+    $termino = trim($_POST['termino'] ?? '');
+    if (strlen($termino) < 2) {
+        echo json_encode([], JSON_UNESCAPED_UNICODE);
+        $conexion->close();
+        exit;
+    }
+
+    $patron = '%' . $termino . '%';
+    $stmt = $conexion->prepare(
+        "SELECT id_cliente, nombre, IFNULL(apellido, '') AS apellido, dui
+         FROM cliente
+         WHERE estado = 'activo'
+           AND (CONCAT_WS(' ', nombre, apellido) LIKE ? OR dui LIKE ?)
+         ORDER BY nombre, apellido"
+    );
+    $stmt->bind_param('ss', $patron, $patron);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+
+    $clientes = [];
+    while ($fila = $resultado->fetch_assoc()) {
+        $clientes[] = [
+            'id_cliente' => $fila['id_cliente'],
+            'nombre' => trim($fila['nombre'] . ' ' . $fila['apellido']),
+            'dui' => $fila['dui']
+        ];
+    }
+
+    echo json_encode($clientes, JSON_UNESCAPED_UNICODE);
+    $stmt->close();
+    $conexion->close();
+    exit;
+}
+
 if ($opcion == "consultarClientes") {
     require_once "../conexion.php";
 
@@ -393,6 +431,7 @@ if ($opcion == "consultarDetalle") {
     $stmt = $conexion->prepare(
         "SELECT v.id_venta, v.fecha_hora,
                 CONCAT(c.nombre, ' ', IFNULL(c.apellido, '')) AS cliente, c.dui,
+                c.telefono, c.direccion_entrega,
                 v.tipo_venta, v.estado, v.subtotal, v.iva_debito, v.total,
                 IFNULL(u.nombre, '') AS usuario
          FROM venta AS v
