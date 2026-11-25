@@ -213,6 +213,7 @@ requerir_autenticacion();
       </ul>
     </li>
 
+    <?php if (tiene_permiso('creditos.consultar') || tiene_permiso('ventas.registrar')): ?>
     <li class="nav-group">
       <a class="nav-link nav-group-toggle" href="#">
         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -221,13 +222,15 @@ requerir_autenticacion();
         Créditos
       </a>
       <ul class="nav-group-items compact">
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar</a></li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar</a></li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Plan de Pagos</a></li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar Pago</a></li>
-        <li class="nav-item"><a class="nav-link" href="#"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Estado de Cuenta</a></li>
+        <?php if (tiene_permiso('ventas.registrar')): ?>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Ventas.php?tipo=credito"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Registrar crédito</a></li>
+        <?php endif; ?>
+        <?php if (tiene_permiso('creditos.consultar')): ?>
+        <li class="nav-item"><a class="nav-link" href="<?php echo BASE_URL; ?>forms/Lista-Creditos.php"><span class="nav-icon"><span class="nav-icon-bullet"></span></span> Consultar créditos</a></li>
+        <?php endif; ?>
       </ul>
     </li>
+    <?php endif; ?>
 
     <?php if (tiene_permiso('usuarios.gestionar') || tiene_permiso('roles.gestionar')): ?>
     <li class="nav-divider"></li>

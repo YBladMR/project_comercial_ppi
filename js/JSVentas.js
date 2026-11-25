@@ -31,9 +31,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const btnGuardar = document.getElementById("btnGuardar");
     const btnCancelar = document.getElementById("btnCancelar");
     const textoGuardar = document.getElementById("textoGuardar");
+    const panelCredito = document.getElementById("panelCredito");
+    const inputPrima = document.getElementById("prima");
+    const inputNumeroCuotas = document.getElementById("numero_cuotas");
+    const inputPrimerVencimiento = document.getElementById("fecha_primer_vencimiento");
+    const resumenCredito = document.getElementById("resumenCredito");
+    const envolturaPlanPreview = document.getElementById("envolturaPlanPreview");
+    const cuerpoPlanPreview = document.getElementById("cuerpoPlanPreview");
 
     const URL_DAO = "../dao/DAOVentas.php";
     const URL_LISTA = "Lista-ventas.php";
+    const tokenCsrf = document.body.dataset.csrfToken || "";
     const CLAVE_BORRADOR_VENTA = "comercial_venta_borrador";
     const IVA = 0.13;
 
@@ -54,8 +62,107 @@ document.addEventListener("DOMContentLoaded", async () => {
     const dinero = (n) => "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const redondear = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
 
+    function fechaLocal(d) {
+        const anio = d.getFullYear();
+        const mes = String(d.getMonth() + 1).padStart(2, "0");
+        const dia = String(d.getDate()).padStart(2, "0");
+        return `${anio}-${mes}-${dia}`;
+    }
+
+    function fechaMensual(fechaBase, desplazamiento) {
+        const [anio, mes, dia] = fechaBase.split("-").map(Number);
+        const primerDia = new Date(anio, mes - 1 + desplazamiento, 1);
+        const ultimoDia = new Date(primerDia.getFullYear(), primerDia.getMonth() + 1, 0).getDate();
+        return fechaLocal(new Date(primerDia.getFullYear(), primerDia.getMonth(), Math.min(dia, ultimoDia)));
+    }
+
+    function interesPeriodo(capital, inicio, fin) {
+        let cursor = Date.UTC(...inicio.split("-").map((valor, indice) => indice === 1 ? Number(valor) - 1 : Number(valor)));
+        const finUtc = Date.UTC(...fin.split("-").map((valor, indice) => indice === 1 ? Number(valor) - 1 : Number(valor)));
+        let total = 0;
+        while (cursor < finUtc) {
+            const anio = new Date(cursor).getUTCFullYear();
+            const inicioSiguienteAnio = Date.UTC(anio + 1, 0, 1);
+            const finSegmento = Math.min(inicioSiguienteAnio, finUtc);
+            const dias = (finSegmento - cursor) / 86400000;
+            const diasAnio = ((Date.UTC(anio + 1, 0, 1) - Date.UTC(anio, 0, 1)) / 86400000);
+            total += capital * 0.20 * dias / diasAnio;
+            cursor = finSegmento;
+        }
+        return redondear(total);
+    }
+
+    function calcularPlanCredito(principal, numeroCuotas, primerVencimiento) {
+        if (!(principal > 0) || !Number.isInteger(numeroCuotas) || numeroCuotas < 1 || !primerVencimiento) return null;
+        const inicio = fechaLocal(new Date());
+        function simular(cuotaFija, incluirFilas) {
+            let saldo = principal;
+            let fechaAnterior = inicio;
+            const filas = [];
+            for (let i = 1; i <= numeroCuotas; i++) {
+                const vencimiento = fechaMensual(primerVencimiento, i - 1);
+                const interes = interesPeriodo(saldo, fechaAnterior, vencimiento);
+                const pago = i === numeroCuotas ? redondear(saldo + interes) : redondear(cuotaFija);
+                const capital = Math.min(saldo, redondear(Math.max(0, pago - interes)));
+                saldo = redondear(Math.max(0, saldo - capital));
+                if (incluirFilas) filas.push({ numero: i, vencimiento, capital, interes, pago });
+                fechaAnterior = vencimiento;
+            }
+            return { saldo, filas };
+        }
+
+        let inferior = 0;
+        let superior = principal * (1 + 0.20 * numeroCuotas / 12) + 1;
+        for (let i = 0; i < 70; i++) {
+            const medio = (inferior + superior) / 2;
+            if (simular(medio, false).saldo > 0) inferior = medio;
+            else superior = medio;
+        }
+        const cuotaFija = redondear(superior);
+        return { cuotaFija, filas: simular(cuotaFija, true).filas };
+    }
+
+    function actualizarProyeccionCredito() {
+        if (!panelCredito || panelCredito.hidden) return;
+        const totalVenta = totales().total;
+        const prima = Math.round(Number(inputPrima.value || 0) * 100) / 100;
+        const numeroCuotas = Number(inputNumeroCuotas.value);
+        const fechaPrimera = inputPrimerVencimiento.value;
+        const financiado = redondear(totalVenta - prima);
+
+        if (!Number.isInteger(numeroCuotas) || numeroCuotas < 1 || numeroCuotas > 120 || prima <= 0 || financiado < numeroCuotas * 0.01 || !fechaPrimera) {
+            resumenCredito.textContent = "Indica una prima menor que el total, entre 1 y 120 cuotas y una fecha futura para ver la proyección.";
+            envolturaPlanPreview.hidden = true;
+            return;
+        }
+
+        const plan = calcularPlanCredito(financiado, numeroCuotas, fechaPrimera);
+        if (!plan) return;
+        const intereses = redondear(plan.filas.reduce((suma, fila) => suma + fila.interes, 0));
+        const totalFinanciado = redondear(financiado + intereses);
+        resumenCredito.innerHTML = `<strong>Total venta:</strong> ${dinero(totalVenta)} &nbsp; <strong>Prima:</strong> ${dinero(prima)} &nbsp; <strong>Capital financiado:</strong> ${dinero(financiado)}<br><strong>Cuota estimada:</strong> ${dinero(plan.cuotaFija)} &nbsp; <strong>Interés total proyectado:</strong> ${dinero(intereses)} &nbsp; <strong>Total proyectado:</strong> ${dinero(totalFinanciado)}`;
+        cuerpoPlanPreview.innerHTML = plan.filas.map((fila) => `<tr><td>${fila.numero}</td><td>${esc(fila.vencimiento)}</td><td class="text-end">${dinero(fila.capital)}</td><td class="text-end">${dinero(fila.interes)}</td><td class="text-end">${dinero(fila.pago)}</td></tr>`).join("");
+        envolturaPlanPreview.hidden = false;
+    }
+
+    function actualizarPanelCredito() {
+        if (!panelCredito) return;
+        const esCredito = selTipo.value === "credito";
+        panelCredito.hidden = !esCredito;
+        if (esCredito && !inputPrimerVencimiento.value) {
+            const hoy = new Date();
+            inputPrimerVencimiento.value = fechaMensual(fechaLocal(hoy), 1);
+        }
+        actualizarProyeccionCredito();
+    }
+
     async function peticion(datos) {
-        const respuesta = await fetch(URL_DAO, { method: "POST", body: datos });
+        const respuesta = await fetch(URL_DAO, {
+            method: "POST",
+            body: datos,
+            credentials: "same-origin",
+            headers: { "X-CSRF-Token": tokenCsrf }
+        });
         if (!respuesta.ok) {
             throw new Error("Error HTTP: " + respuesta.status);
         }
@@ -293,6 +400,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         txtSubtotal.textContent = dinero(t.subtotal);
         txtIva.textContent = dinero(t.iva);
         txtTotal.textContent = dinero(t.total);
+        actualizarProyeccionCredito();
     }
 
     function agregar() {
@@ -372,6 +480,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     selProducto.addEventListener("change", mostrarInfoProducto);
+    selTipo.addEventListener("change", actualizarPanelCredito);
+    [inputPrima, inputNumeroCuotas, inputPrimerVencimiento].forEach((input) => {
+        input?.addEventListener("input", actualizarProyeccionCredito);
+        input?.addEventListener("change", actualizarProyeccionCredito);
+    });
     btnAgregar.addEventListener("click", agregar);
 
     // Enter en la cantidad agrega la línea (sin enviar el formulario)
@@ -430,6 +543,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         selProducto.value = "";
         inpCantidad.value = 1;
         txtFecha.value = ahora();
+        inputPrima.value = "1.00";
+        inputNumeroCuotas.value = "6";
+        inputPrimerVencimiento.value = fechaMensual(fechaLocal(new Date()), 1);
+        actualizarPanelCredito();
         dibujarDetalle();
     }
 
@@ -450,6 +567,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         const t = totales();
+        let credito = null;
+        if (selTipo.value === "credito") {
+            const prima = Math.round(Number(inputPrima.value || 0) * 100) / 100;
+            const numeroCuotas = Number(inputNumeroCuotas.value);
+            const hoy = fechaLocal(new Date());
+            if (!(prima > 0) || prima >= t.total) {
+                notificar("danger", "La prima debe ser mayor que cero y menor que el total de la venta.");
+                inputPrima.focus();
+                return;
+            }
+            if (!Number.isInteger(numeroCuotas) || numeroCuotas < 1 || numeroCuotas > 120) {
+                notificar("danger", "El número de cuotas debe estar entre 1 y 120.");
+                inputNumeroCuotas.focus();
+                return;
+            }
+            if (!inputPrimerVencimiento.value || inputPrimerVencimiento.value <= hoy) {
+                notificar("danger", "El primer vencimiento debe ser una fecha futura.");
+                inputPrimerVencimiento.focus();
+                return;
+            }
+            credito = { prima, numeroCuotas, fechaPrimerVencimiento: inputPrimerVencimiento.value };
+        }
+
         const confirmado = await confirmarAccion(
             `¿Confirma registrar la venta por ${dinero(t.total)}?`,
             "Sí, registrar",
@@ -464,6 +604,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             datos.append("opcion", "guardar");
             datos.append("id_cliente", selCliente.value);
             datos.append("tipo_venta", selTipo.value);
+            if (credito) {
+                datos.append("prima", String(credito.prima));
+                datos.append("numero_cuotas", String(credito.numeroCuotas));
+                datos.append("fecha_primer_vencimiento", credito.fechaPrimerVencimiento);
+            }
             datos.append("detalle", JSON.stringify(
                 detalle.map((l) => ({ id_producto: l.id_producto, cantidad: l.cantidad }))
             ));
@@ -493,7 +638,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /* ---------------------- INICIO ---------------------- */
 
+    if (new URLSearchParams(window.location.search).get("tipo") === "credito") {
+        selTipo.value = "credito";
+    }
     txtFecha.value = ahora();
+    const hoy = new Date();
+    inputPrimerVencimiento.min = fechaLocal(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1));
+    inputPrimerVencimiento.value = fechaMensual(fechaLocal(hoy), 1);
+    actualizarPanelCredito();
     dibujarDetalle();
     await cargarProductos();
     restaurarBorradorVenta();
