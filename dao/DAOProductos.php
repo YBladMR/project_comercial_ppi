@@ -106,7 +106,7 @@ if ($opcion == "guardar") {
     }
 
     $stmtCategoria = $conexion->prepare(
-        "SELECT margen_ganancia FROM categoria WHERE id_categoria = ? AND estado = 'activo' LIMIT 1"
+        "SELECT id_categoria FROM categoria WHERE id_categoria = ? AND estado = 'activo' LIMIT 1"
     );
     $stmtCategoria->bind_param('i', $idcategoria);
     $stmtCategoria->execute();
@@ -117,7 +117,8 @@ if ($opcion == "guardar") {
         $conexion->close();
         exit;
     }
-    $margenInicial = (float) $categoriaProducto['margen_ganancia'];
+    // El margen es propio de cada producto; no se hereda desde su categoría.
+    $margenInicial = 0.00;
 
     $validacionEspecificaciones = validarEspecificacionesProducto(
         $conexion,

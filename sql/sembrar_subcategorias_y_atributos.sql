@@ -1,5 +1,5 @@
 -- Ejecutar después de sql/crear_especificaciones_producto.sql.
--- Carga la taxonomía de la conversación y los campos del formulario por subcategoría.
+-- Carga las cuatro familias solicitadas y los campos del formulario por subcategoría.
 USE sys_comercial;
 
 -- La base tiene un índice único global para nombre de categoría. Esta subcategoría
@@ -9,99 +9,40 @@ INNER JOIN categoria AS padre ON padre.id_categoria = hija.id_padre
 SET hija.nombre = 'Textiles de descanso', hija.descripcion = 'Sábanas, cobertores y textiles para camas.'
 WHERE hija.nombre = 'Ropa de cama' AND padre.nombre = 'Muebles de descanso' AND padre.id_padre IS NULL;
 
-INSERT INTO categoria (nombre, descripcion, id_padre, margen_ganancia, estado)
+INSERT INTO categoria (nombre, descripcion, id_padre, estado)
 VALUES
-  ('Línea blanca', 'Categoría principal para línea blanca.', NULL, 30.00, 'activo'),
-  ('Electrodomésticos pequeños', 'Categoría principal para electrodomésticos pequeños.', NULL, 30.00, 'activo'),
-  ('Electrónica', 'Categoría principal para electrónica.', NULL, 30.00, 'activo'),
-  ('Muebles', 'Categoría principal para muebles.', NULL, 30.00, 'activo'),
-  ('Ferretería y herramientas', 'Categoría principal para ferretería y herramientas.', NULL, 30.00, 'activo'),
-  ('Hogar y cocina', 'Categoría principal para hogar y cocina.', NULL, 30.00, 'activo'),
-  ('Deportes y recreación', 'Categoría principal para deportes y recreación.', NULL, 30.00, 'activo'),
-  ('Iluminación y energía', 'Categoría principal para iluminación y energía.', NULL, 30.00, 'activo')
+  ('Línea blanca', 'Categoría principal para línea blanca.', NULL, 'activo'),
+  ('Muebles de descanso', 'Categoría principal para colchones, camas y textiles de descanso.', NULL, 'activo'),
+  ('Electrónica', 'Categoría principal para electrónica.', NULL, 'activo'),
+  ('Hogar y cocina', 'Categoría principal para hogar y cocina.', NULL, 'activo')
 ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion), estado = 'activo';
 
-INSERT INTO categoria (nombre, descripcion, id_padre, margen_ganancia, estado)
-SELECT c.nombre, c.descripcion, p.id_categoria, 30.00, 'activo'
+INSERT INTO categoria (nombre, descripcion, id_padre, estado)
+SELECT c.nombre, c.descripcion, p.id_categoria, 'activo'
 FROM (
 SELECT 'Línea blanca' AS nombre_padre, 'Cocinas' AS nombre, 'Subcategoría de cocinas.' AS descripcion
-UNION ALL
-SELECT 'Línea blanca' AS nombre_padre, 'Hornos empotrables' AS nombre, 'Subcategoría de hornos empotrables.' AS descripcion
-UNION ALL
-SELECT 'Línea blanca' AS nombre_padre, 'Campanas extractoras' AS nombre, 'Subcategoría de campanas extractoras.' AS descripcion
-UNION ALL
-SELECT 'Línea blanca' AS nombre_padre, 'Lavadoras' AS nombre, 'Subcategoría de lavadoras.' AS descripcion
-UNION ALL
-SELECT 'Línea blanca' AS nombre_padre, 'Secadoras' AS nombre, 'Subcategoría de secadoras.' AS descripcion
-UNION ALL
-SELECT 'Línea blanca' AS nombre_padre, 'Refrigeradoras' AS nombre, 'Subcategoría de refrigeradoras.' AS descripcion
-UNION ALL
-SELECT 'Línea blanca' AS nombre_padre, 'Congeladores' AS nombre, 'Subcategoría de congeladores.' AS descripcion
-UNION ALL
-SELECT 'Línea blanca' AS nombre_padre, 'Aires acondicionados' AS nombre, 'Subcategoría de aires acondicionados.' AS descripcion
-UNION ALL
-SELECT 'Línea blanca' AS nombre_padre, 'Ventiladores' AS nombre, 'Subcategoría de ventiladores.' AS descripcion
-UNION ALL
-SELECT 'Electrodomésticos pequeños' AS nombre_padre, 'Preparación de alimentos' AS nombre, 'Subcategoría de preparación de alimentos.' AS descripcion
-UNION ALL
-SELECT 'Electrodomésticos pequeños' AS nombre_padre, 'Cocción pequeña' AS nombre, 'Subcategoría de cocción pequeña.' AS descripcion
-UNION ALL
-SELECT 'Electrodomésticos pequeños' AS nombre_padre, 'Bebidas calientes y jugos' AS nombre, 'Subcategoría de bebidas calientes y jugos.' AS descripcion
-UNION ALL
-SELECT 'Electrodomésticos pequeños' AS nombre_padre, 'Limpieza y planchado' AS nombre, 'Subcategoría de limpieza y planchado.' AS descripcion
-UNION ALL
-SELECT 'Electrodomésticos pequeños' AS nombre_padre, 'Cuidado personal' AS nombre, 'Subcategoría de cuidado personal.' AS descripcion
-UNION ALL
-SELECT 'Electrónica' AS nombre_padre, 'Televisores' AS nombre, 'Subcategoría de televisores.' AS descripcion
-UNION ALL
-SELECT 'Electrónica' AS nombre_padre, 'Audio' AS nombre, 'Subcategoría de audio.' AS descripcion
-UNION ALL
-SELECT 'Electrónica' AS nombre_padre, 'Computadoras' AS nombre, 'Subcategoría de computadoras.' AS descripcion
-UNION ALL
-SELECT 'Electrónica' AS nombre_padre, 'Impresión' AS nombre, 'Subcategoría de impresión.' AS descripcion
-UNION ALL
-SELECT 'Electrónica' AS nombre_padre, 'Telefonía y tabletas' AS nombre, 'Subcategoría de telefonía y tabletas.' AS descripcion
-UNION ALL
-SELECT 'Muebles' AS nombre_padre, 'Muebles de sala' AS nombre, 'Subcategoría de muebles de sala.' AS descripcion
-UNION ALL
-SELECT 'Muebles' AS nombre_padre, 'Muebles de comedor' AS nombre, 'Subcategoría de muebles de comedor.' AS descripcion
-UNION ALL
-SELECT 'Muebles' AS nombre_padre, 'Muebles de dormitorio' AS nombre, 'Subcategoría de muebles de dormitorio.' AS descripcion
-UNION ALL
-SELECT 'Muebles' AS nombre_padre, 'Muebles de oficina' AS nombre, 'Subcategoría de muebles de oficina.' AS descripcion
-UNION ALL
-SELECT 'Ferretería y herramientas' AS nombre_padre, 'Herramientas eléctricas' AS nombre, 'Subcategoría de herramientas eléctricas.' AS descripcion
-UNION ALL
-SELECT 'Ferretería y herramientas' AS nombre_padre, 'Herramientas manuales' AS nombre, 'Subcategoría de herramientas manuales.' AS descripcion
-UNION ALL
-SELECT 'Ferretería y herramientas' AS nombre_padre, 'Plomería' AS nombre, 'Subcategoría de plomería.' AS descripcion
-UNION ALL
-SELECT 'Ferretería y herramientas' AS nombre_padre, 'Electricidad' AS nombre, 'Subcategoría de electricidad.' AS descripcion
-UNION ALL
-SELECT 'Ferretería y herramientas' AS nombre_padre, 'Pinturas y acabados' AS nombre, 'Subcategoría de pinturas y acabados.' AS descripcion
-UNION ALL
-SELECT 'Hogar y cocina' AS nombre_padre, 'Utensilios de cocina' AS nombre, 'Subcategoría de utensilios de cocina.' AS descripcion
-UNION ALL
-SELECT 'Hogar y cocina' AS nombre_padre, 'Mesa y vajilla' AS nombre, 'Subcategoría de mesa y vajilla.' AS descripcion
-UNION ALL
-SELECT 'Hogar y cocina' AS nombre_padre, 'Baño' AS nombre, 'Subcategoría de baño.' AS descripcion
-UNION ALL
-SELECT 'Hogar y cocina' AS nombre_padre, 'Ropa de cama' AS nombre, 'Subcategoría de ropa de cama.' AS descripcion
-UNION ALL
-SELECT 'Deportes y recreación' AS nombre_padre, 'Ejercicio en casa' AS nombre, 'Subcategoría de ejercicio en casa.' AS descripcion
-UNION ALL
-SELECT 'Deportes y recreación' AS nombre_padre, 'Ciclismo' AS nombre, 'Subcategoría de ciclismo.' AS descripcion
-UNION ALL
-SELECT 'Deportes y recreación' AS nombre_padre, 'Fútbol' AS nombre, 'Subcategoría de fútbol.' AS descripcion
-UNION ALL
-SELECT 'Iluminación y energía' AS nombre_padre, 'Iluminación interior' AS nombre, 'Subcategoría de iluminación interior.' AS descripcion
-UNION ALL
-SELECT 'Iluminación y energía' AS nombre_padre, 'Iluminación exterior' AS nombre, 'Subcategoría de iluminación exterior.' AS descripcion
-UNION ALL
-SELECT 'Iluminación y energía' AS nombre_padre, 'Respaldo de energía' AS nombre, 'Subcategoría de respaldo de energía.' AS descripcion
-UNION ALL
-SELECT 'Iluminación y energía' AS nombre_padre, 'Extensiones y protectores' AS nombre, 'Subcategoría de extensiones y protectores.' AS descripcion
-) AS c
+UNION ALL SELECT 'Línea blanca', 'Hornos empotrables', 'Subcategoría de hornos empotrables.'
+UNION ALL SELECT 'Línea blanca', 'Campanas extractoras', 'Subcategoría de campanas extractoras.'
+UNION ALL SELECT 'Línea blanca', 'Lavadoras', 'Subcategoría de lavadoras.'
+UNION ALL SELECT 'Línea blanca', 'Secadoras', 'Subcategoría de secadoras.'
+UNION ALL SELECT 'Línea blanca', 'Refrigeradoras', 'Subcategoría de refrigeradoras.'
+UNION ALL SELECT 'Línea blanca', 'Congeladores', 'Subcategoría de congeladores.'
+UNION ALL SELECT 'Línea blanca', 'Aires acondicionados', 'Subcategoría de aires acondicionados.'
+UNION ALL SELECT 'Línea blanca', 'Ventiladores', 'Subcategoría de ventiladores.'
+UNION ALL SELECT 'Muebles de descanso', 'Almohadas', 'Subcategoría de almohadas.'
+UNION ALL SELECT 'Muebles de descanso', 'Camas y bases', 'Subcategoría de camas y bases.'
+UNION ALL SELECT 'Muebles de descanso', 'Colchones', 'Subcategoría de colchones.'
+UNION ALL SELECT 'Muebles de descanso', 'Protectores y toppers', 'Subcategoría de protectores y toppers.'
+UNION ALL SELECT 'Muebles de descanso', 'Textiles de descanso', 'Sábanas, cobertores y textiles para camas.'
+UNION ALL SELECT 'Electrónica', 'Televisores', 'Subcategoría de televisores.'
+UNION ALL SELECT 'Electrónica', 'Audio', 'Subcategoría de audio.'
+UNION ALL SELECT 'Electrónica', 'Computadoras', 'Subcategoría de computadoras.'
+UNION ALL SELECT 'Electrónica', 'Impresión', 'Subcategoría de impresión.'
+UNION ALL SELECT 'Electrónica', 'Telefonía y tabletas', 'Subcategoría de telefonía y tabletas.'
+UNION ALL SELECT 'Hogar y cocina', 'Utensilios de cocina', 'Subcategoría de utensilios de cocina.'
+UNION ALL SELECT 'Hogar y cocina', 'Mesa y vajilla', 'Subcategoría de mesa y vajilla.'
+UNION ALL SELECT 'Hogar y cocina', 'Baño', 'Subcategoría de baño.'
+UNION ALL SELECT 'Hogar y cocina', 'Ropa de cama', 'Subcategoría de ropa de cama.') AS c
 INNER JOIN categoria AS p ON p.nombre = c.nombre_padre AND p.id_padre IS NULL
 ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion), estado = 'activo';
 
