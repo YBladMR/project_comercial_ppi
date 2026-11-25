@@ -27,14 +27,12 @@ include_once(__DIR__ . '/../config.php');
 
     <div class="body flex-grow-1 px-3">
         <div class="container-fluid lp">
-            <section class="lp-hero" aria-labelledby="titulo-proveedores">
-                <span class="lp-hero-icono" aria-hidden="true"><i class="bi bi-truck"></i></span>
+            <section class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 d-print-none" aria-labelledby="titulo-proveedores">
                 <div class="lp-hero-texto">
                     <h1 id="titulo-proveedores">Directorio de Proveedores</h1>
                     <p>Consulta, organiza y administra tus contactos comerciales.</p>
                 </div>
-                <a href="proveedor.php" class="lp-btn-hero"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Registrar proveedor</a>
-                <i class="bi bi-buildings lp-hero-deco" aria-hidden="true"></i>
+                <a href="proveedor.php" class="btn btn-primary"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Registrar proveedor</a>
             </section>
 
             <section class="lp-resumen" aria-label="Resumen de proveedores">

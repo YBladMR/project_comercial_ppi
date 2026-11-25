@@ -20,14 +20,13 @@ $titulo_pagina = 'Créditos';
   <?php include __DIR__ . '/../Barra_Lateral.php'; ?>
   <div class="body flex-grow-1 px-3">
     <div class="container-fluid lc">
-      <section class="lc-hero">
-        <div class="lc-hero-icon"><i class="bi bi-credit-card-2-front"></i></div>
+      <section class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <div class="lc-hero-text">
           <h1>Créditos</h1>
           <p>Consulta los saldos reales, cuotas proyectadas y pagos registrados.</p>
         </div>
         <?php if (tiene_permiso('ventas.registrar')): ?>
-          <a class="btn btn-light rounded-pill fw-semibold" href="Ventas.php?tipo=credito"><i class="bi bi-plus-lg me-1"></i> Registrar crédito</a>
+          <a class="btn btn-primary rounded-pill fw-semibold" href="Ventas.php?tipo=credito"><i class="bi bi-plus-lg me-1"></i> Registrar crédito</a>
         <?php endif; ?>
       </section>
 

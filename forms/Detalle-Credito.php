@@ -30,13 +30,10 @@ $titulo_pagina = 'Detalle del crédito';
         <a href="Lista-Creditos.php" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Créditos</a>
         <span id="estadoCredito" class="dc-estado">Cargando…</span>
       </div>
-      <section class="dc-hero">
-        <div class="dc-hero-icon"><i class="bi bi-credit-card-2-front"></i></div>
-        <div>
-          <h1 id="tituloCredito">Crédito</h1>
-          <p id="subtituloCredito">Cargando información…</p>
-        </div>
-      </section>
+      <div class="mb-3">
+        <h1 class="h3 mb-1" id="tituloCredito">Crédito</h1>
+        <p class="text-body-secondary mb-0" id="subtituloCredito">Cargando información…</p>
+      </div>
 
       <section class="dc-resumen" aria-label="Resumen del crédito">
         <article><span>Capital financiado</span><strong id="capitalInicial">$0.00</strong></article>
