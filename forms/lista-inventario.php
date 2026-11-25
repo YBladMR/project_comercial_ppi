@@ -25,7 +25,7 @@ include_once __DIR__ . '/../config.php';
         <span class="li-hero-icono"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
         <div>
           <h1>Existencias de inventario</h1>
-          <p>Consulta las cantidades registradas para cada producto.</p>
+          <p>Consulta existencias, costo promedio y ubicación de cada producto.</p>
         </div>
       </section>
 
@@ -41,7 +41,7 @@ include_once __DIR__ . '/../config.php';
         <div class="li-tabla-wrap" id="tabla-wrap" hidden>
           <table class="li-tabla">
             <thead>
-              <tr><th>Producto</th><th>Ubicación</th><th class="text-center">Existencia</th><th class="text-center">Acciones</th></tr>
+              <tr><th>Producto</th><th class="text-center">Existencia</th><th class="text-end">Costo promedio</th><th class="text-center">Acciones</th></tr>
             </thead>
             <tbody id="cuerpo-inventario"></tbody>
           </table>
@@ -73,10 +73,11 @@ include_once __DIR__ . '/../config.php';
               </div>
               <div class="modal-body">
                 <p class="mb-3">Producto: <strong id="nombreProductoUbicacion"></strong></p>
-                <label for="selectUbicacionInventario" class="form-label">Ubicación *</label>
-                <select id="selectUbicacionInventario" class="form-select" required>
-                  <option value="">Seleccione una ubicación</option>
+                <label for="selectUbicacionInventario" class="form-label">Ubicación</label>
+                <select id="selectUbicacionInventario" class="form-select">
+                  <option value="">Sin ubicación asignada</option>
                 </select>
+                <div class="form-text">Selecciona “Sin ubicación asignada” para quitar la ubicación actual.</div>
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancelar</button>
