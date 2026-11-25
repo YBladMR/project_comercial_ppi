@@ -26,7 +26,7 @@ $titulo_pagina = 'Administración de usuarios';
           <form id="formCrearUsuario" class="row g-3">
             <div class="col-md-3">
               <label class="form-label" for="nombreUsuario">Nombre completo</label>
-              <input class="form-control" id="nombreUsuario" name="nombre" maxlength="100" required>
+              <input class="form-control" id="nombreUsuario" name="nombre" maxlength="100" autocomplete="off" required>
             </div>
             <div class="col-md-2">
               <label class="form-label" for="nombreLogin">Nombre de usuario</label>
@@ -35,7 +35,7 @@ $titulo_pagina = 'Administración de usuarios';
             </div>
             <div class="col-md-3">
               <label class="form-label" for="correoUsuario">Correo electrónico (opcional)</label>
-              <input class="form-control" id="correoUsuario" name="correo_electronico" type="email" maxlength="254" autocomplete="email">
+              <input class="form-control" id="correoUsuario" name="correo_electronico" type="email" maxlength="254" autocomplete="off">
             </div>
             <div class="col-md-3">
               <label class="form-label" for="rolUsuario">Rol</label>

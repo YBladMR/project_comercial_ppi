@@ -384,7 +384,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <td>${esc(l.nombre)}</td>
                     <td class="text-end">${dinero(l.precio)}</td>
                     <td>
-                        <input type="number" class="form-control form-control-sm in-cant" min="1" step="1"
+                        <input type="number" class="form-control form-control-sm in-cant" min="1" step="1" autocomplete="off"
                                max="${esc(buscarProducto(l.id_producto)?.existencia ?? l.cantidad)}" value="${esc(l.cantidad)}">
                     </td>
                     <td class="text-end">${dinero(redondear(l.precio * l.cantidad))}</td>

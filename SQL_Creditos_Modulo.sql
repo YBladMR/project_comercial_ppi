@@ -78,3 +78,17 @@ INNER JOIN permiso AS actual ON actual.id_permiso = rp.id_permiso
 INNER JOIN permiso AS nuevo ON nuevo.codigo = 'creditos.registrar_pago'
 WHERE actual.codigo = 'ventas.registrar';
 
+-- El rol operativo Vendedor puede registrar/consultar ventas y gestionar pagos de crédito.
+-- No se le asigna ventas.anular.
+INSERT IGNORE INTO rol_permiso (id_rol, id_permiso)
+SELECT r.id_rol, p.id_permiso
+FROM rol AS r
+CROSS JOIN permiso AS p
+WHERE LOWER(TRIM(r.nombre)) = 'vendedor'
+  AND p.codigo IN (
+    'ventas.consultar',
+    'ventas.registrar',
+    'creditos.consultar',
+    'creditos.registrar_pago'
+  );
+

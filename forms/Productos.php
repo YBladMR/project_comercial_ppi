@@ -37,7 +37,7 @@ include_once(__DIR__ . '/../config.php');?>
               <div class="row mb-3">
                 <div class="col-md-6">
                   <label for="nombre" class="form-label">Nombre del Producto *</label>
-                  <input type="text" class="form-control" id="nombre" name="nombre" maxlength="120" required placeholder="Ej. Computadora de Escritorio" autocomplete="off">
+                  <input type="text" class="form-control" id="nombre" name="nombre" maxlength="120" required placeholder="Ej. Cocina electrica" autocomplete="off">
                 </div>
                 
                 <div class="col-md-6">

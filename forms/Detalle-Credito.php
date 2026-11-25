@@ -81,7 +81,7 @@ $titulo_pagina = 'Detalle del crédito';
               <option value="liquidacion">Liquidar todo el crédito</option>
             </select>
             <label for="montoPago" class="form-label">Monto recibido *</label>
-            <div class="input-group mb-2"><span class="input-group-text">$</span><input id="montoPago" class="form-control" type="number" min="0.01" step="0.01" inputmode="decimal" required></div>
+            <div class="input-group mb-2"><span class="input-group-text">$</span><input id="montoPago" class="form-control" type="number" min="0.01" step="0.01" inputmode="decimal" autocomplete="off" required></div>
             <div id="ayudaTipoPago" class="form-text mb-3">Puedes registrar un abono menor a la cuota. El excedente, después de intereses y mora acumulados, reduce capital.</div>
             <div class="dc-regla-pago"><i class="bi bi-info-circle"></i><span>El pago se aplica primero a mora acumulada, luego a interés corriente y finalmente a capital. No se cobra interés sobre intereses.</span></div>
             <button id="btnRegistrarPago" class="btn btn-primary w-100 mt-3" type="submit"><i class="bi bi-cash-coin me-1"></i> Registrar pago</button>

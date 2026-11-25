@@ -50,7 +50,7 @@ include_once(__DIR__ . '/../config.php'); ?>
               </button>
               <div id="panelFiltros" class="lp-menu" hidden>
                 <div class="form-check mb-3">
-                  <input class="form-check-input" type="checkbox" id="solo-vacias">
+                  <input class="form-check-input" type="checkbox" id="solo-vacias" autocomplete="off">
                   <label class="form-check-label" for="solo-vacias">Solo sin productos</label>
                 </div>
                 <div class="d-flex flex-column gap-2">

@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function dibujarPermisos(seleccionados = []) {
     const ids = new Set(seleccionados.map(Number));
-    listaPermisos.innerHTML = permisos.map((p) => `<div class="col-md-6 col-xl-4"><label class="form-check border rounded p-2 h-100"><input class="form-check-input me-2" type="checkbox" name="permisos[]" value="${p.id_permiso}" ${ids.has(Number(p.id_permiso)) ? 'checked' : ''}><span><strong>${esc(p.codigo)}</strong><br><small class="text-body-secondary">${esc(p.descripcion)}</small></span></label></div>`).join('');
+    listaPermisos.innerHTML = permisos.map((p) => `<div class="col-md-6 col-xl-4"><label class="form-check border rounded p-2 h-100"><input class="form-check-input me-2" type="checkbox" name="permisos[]" value="${p.id_permiso}" autocomplete="off" ${ids.has(Number(p.id_permiso)) ? 'checked' : ''}><span><strong>${esc(p.codigo)}</strong><br><small class="text-body-secondary">${esc(p.descripcion)}</small></span></label></div>`).join('');
   }
 
   function dibujarRoles() {

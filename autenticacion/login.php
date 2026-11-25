@@ -198,7 +198,7 @@ $tokenCsrf = obtener_token_csrf();
             <div class="card-body d-flex flex-column gap-4">
               <h2 class="h5 text-center">Inicia sesión en tu cuenta</h2>
               <form class="row gap-3" action="<?php echo BASE_URL; ?>autenticacion/login.php" method="post" autocomplete="off">
-                <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars($tokenCsrf, ENT_QUOTES, 'UTF-8'); ?>">
+                <input type="hidden" name="token_csrf" value="<?php echo htmlspecialchars($tokenCsrf, ENT_QUOTES, 'UTF-8'); ?>" autocomplete="off">
                 <div>
                   <label class="form-label" for="usuario">Usuario</label>
                   <input class="form-control" id="usuario" name="usuario" type="text" value="<?php echo htmlspecialchars($usuarioIngresado, ENT_QUOTES, 'UTF-8'); ?>" placeholder="Tu usuario" autocomplete="off" maxlength="50" required>
@@ -209,7 +209,7 @@ $tokenCsrf = obtener_token_csrf();
                     <span class="small text-body-secondary">¿Olvidaste tu contraseña? Contacta al administrador.</span>
                   </div>
                   <div class="input-group">
-                    <input class="form-control" id="contrasena" name="contrasena" type="password" placeholder="Tu contraseña" autocomplete="current-password" required>
+                    <input class="form-control" id="contrasena" name="contrasena" type="password" placeholder="Tu contraseña" autocomplete="off" required>
                     <span class="input-group-text">
                       <button id="alternarContrasena" class="bg-transparent border-0 p-0 link-secondary" type="button" aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar contraseña">
                         <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">

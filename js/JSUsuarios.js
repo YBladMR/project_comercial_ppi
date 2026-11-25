@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         : `<select class="form-select form-select-sm" data-campo="estado" aria-label="Estado de ${esc(u.nombre)}"><option value="activo" ${u.estado === 'activo' ? 'selected' : ''}>Activo</option><option value="inactivo" ${u.estado === 'inactivo' ? 'selected' : ''}>Inactivo</option></select>`;
       const correo = u.protegido
         ? esc(u.correo_electronico || '—')
-        : `<input class="form-control form-control-sm" type="email" maxlength="254" data-campo="correo_electronico" value="${esc(u.correo_electronico || '')}" aria-label="Correo de ${esc(u.nombre)}">`;
+        : `<input class="form-control form-control-sm" type="email" maxlength="254" data-campo="correo_electronico" value="${esc(u.correo_electronico || '')}" autocomplete="off" aria-label="Correo de ${esc(u.nombre)}">`;
       const acciones = u.protegido
         ? '<span class="text-body-secondary small">Protegida</span>'
         : `<div class="d-flex flex-wrap gap-1"><button class="btn btn-sm btn-outline-primary" type="button" data-accion="guardar" data-id="${u.id_usuario}" title="Guardar correo, rol y estado"><i class="bi bi-save"></i></button><button class="btn btn-sm btn-outline-warning" type="button" data-accion="restablecer" data-id="${u.id_usuario}" title="Generar contraseña temporal"><i class="bi bi-key"></i></button></div>`;

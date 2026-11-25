@@ -72,7 +72,7 @@ include_once(__DIR__ . '/../config.php');
                             </button>
                             <div id="panelFiltros" class="lp-menu" hidden>
                                 <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" id="solo-juridicos">
+                                    <input class="form-check-input" type="checkbox" id="solo-juridicos" autocomplete="off">
                                     <label class="form-check-label" for="solo-juridicos">Solo personas jurídicas</label>
                                 </div>
                                 <div class="d-flex flex-column gap-2">

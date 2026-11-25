@@ -38,7 +38,7 @@ $titulo_pagina = $id_cliente ? 'Modificar cliente' : 'Registrar cliente';
 
         <div class="card-body">
           <form id="formCliente" autocomplete="off" novalidate>
-            <input type="hidden" id="id_cliente" name="id_cliente" value="<?php echo htmlspecialchars((string) $id_cliente, ENT_QUOTES, 'UTF-8'); ?>">
+            <input type="hidden" id="id_cliente" name="id_cliente" value="<?php echo htmlspecialchars((string) $id_cliente, ENT_QUOTES, 'UTF-8'); ?>" autocomplete="off">
 
             <div class="row g-3">
               <div class="col-12 col-md-6">
@@ -64,10 +64,10 @@ $titulo_pagina = $id_cliente ? 'Modificar cliente' : 'Registrar cliente';
               </div>
               <div class="col-12 col-md-8">
                 <label for="correo_electronico" class="form-label">Correo electrónico *</label>
-                <input type="email" class="form-control" id="correo_electronico" name="correo_electronico" maxlength="100" required autocomplete="email">
+                <input type="email" class="form-control" id="correo_electronico" name="correo_electronico" maxlength="100" required autocomplete="off">
               </div>
               <?php if ($desdeVenta): ?>
-                <input type="hidden" id="estado" name="estado" value="activo">
+                <input type="hidden" id="estado" name="estado" value="activo" autocomplete="off">
               <?php else: ?>
                 <div class="col-12 col-md-4">
                   <label for="estado" class="form-label">Estado *</label>
